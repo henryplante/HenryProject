@@ -61,6 +61,29 @@ public class ReviewEventWriter {
         writeNotification(owner.getId(), material, actor, "fully_approved", Map.of(), at);
     }
 
+    public void reviewRestarted(Material material, AppUser actor, int versionNumber, Instant at) {
+        writeActivity(material, actor, "review_restarted", at, Map.of("version", versionNumber));
+    }
+
+    public void uploaded(Material material, AppUser actor, int versionNumber, Instant at) {
+        writeActivity(material, actor, "uploaded", at, Map.of("version", versionNumber));
+    }
+
+    public void productChanged(Material material, AppUser actor, String fromName, String toName, Instant at) {
+        writeActivity(material, actor, "product_changed", at, Map.of("from", fromName, "to", toName));
+    }
+
+    public void ownerChanged(Material material, AppUser actor, String fromName, String toName, Instant at) {
+        writeActivity(material, actor, "owner_changed", at, Map.of("from", fromName, "to", toName));
+    }
+
+    public void obsolete(Material material, AppUser actor, AppUser owner, Instant at) {
+        writeActivity(material, actor, "obsolete", at, Map.of());
+        if (!actor.getId().equals(owner.getId())) {
+            writeNotification(owner.getId(), material, actor, "obsolete", Map.of(), at);
+        }
+    }
+
     private void writeActivity(Material material, AppUser actor, String type, Instant at, Map<String, Object> detail) {
         Activity activity = DomainEntityFactory.create(Activity.class);
         activity.setId(UUID.randomUUID());
