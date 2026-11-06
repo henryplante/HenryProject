@@ -154,8 +154,7 @@ export function reviewStateLine(
   if (!model.completed) {
     const active = model.steps.find((s) => s.position === model.activePosition);
     if (!active) return "Review in progress";
-    const counts = active.requirements.map((r) => r.label).join(", ");
-    return `Step ${active.position} of ${model.steps.length} · ${counts}`.trim();
+    return `Step ${active.position} of ${model.steps.length}`;
   }
   const total = model.steps.length;
   return `${total} of ${total} review ${total === 1 ? "step" : "steps"} complete`;

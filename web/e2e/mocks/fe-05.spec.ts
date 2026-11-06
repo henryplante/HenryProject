@@ -21,9 +21,7 @@ test.describe("material view", () => {
     await expect(banner.locator('[data-slot="banner-status"] [data-status="in_review"]')).toHaveText(
       "In review",
     );
-    await expect(banner.locator('[data-slot="material-state-line"]')).toHaveText(
-      "Step 1 of 2 · Legal 0/2",
-    );
+    await expect(banner.locator('[data-slot="material-state-line"]')).toHaveText("Step 1 of 2");
 
     const stepper = page.locator('[data-slot="review-stepper"]');
     await expect(stepper.locator('[data-state="active"]')).toContainText("Legal 0/2");

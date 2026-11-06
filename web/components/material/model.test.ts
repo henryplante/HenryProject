@@ -182,11 +182,9 @@ describe("stepper model", () => {
 });
 
 describe("review state line", () => {
-  it("describes the active step with group counts", () => {
+  it("describes the active step position", () => {
     const m = material();
-    expect(reviewStateLine(m, selectedVersionStatus(m, NOW))).toBe(
-      "Step 1 of 2 · Legal 0/2",
-    );
+    expect(reviewStateLine(m, selectedVersionStatus(m, NOW))).toBe("Step 1 of 2");
   });
 
   it("says no review started for drafts without a cycle", () => {
