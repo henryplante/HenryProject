@@ -5,6 +5,7 @@ const baseURL = process.env.E2E_BASE_URL ?? `http://localhost:${port}`;
 
 export default defineConfig({
   testDir: "./e2e",
+  testIgnore: "**/mocks/**",
   fullyParallel: true,
   reporter: [["list"]],
   use: {

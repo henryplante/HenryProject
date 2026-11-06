@@ -9,7 +9,9 @@
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
     "generate:api": "openapi-typescript ../contracts/openapi.yaml -o lib/api/schema.d.ts",
-    "e2e": "playwright test"
+    "e2e": "playwright test",
+    "e2e:mocks": "playwright test -c playwright.mocks.config.ts",
+    "test": "vitest run"
   },
   "dependencies": {
     "@tanstack/react-query": "^5.106.1",
@@ -43,7 +45,8 @@
     "msw": "^3.0.4",
     "openapi-typescript": "^7.13.0",
     "tailwindcss": "^4",
-    "typescript": "^5"
+    "typescript": "^5",
+    "vitest": "^3.2.7"
   },
   "msw": {
     "workerDirectory": [
