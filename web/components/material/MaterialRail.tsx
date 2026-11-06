@@ -84,6 +84,7 @@ export function MaterialRail({ material, versionId }: MaterialRailProps) {
             materialId={material.id}
             versionId={versionId}
             versionNumber={version?.number}
+            obsolete={material.status === "obsolete"}
           />
         </TabsContent>
         <TabsContent value="activity" className="min-h-0 overflow-y-auto">
@@ -193,10 +194,12 @@ export function CommentsTab({
   materialId,
   versionId,
   versionNumber,
+  obsolete,
 }: {
   materialId: string;
   versionId: string;
   versionNumber?: number;
+  obsolete?: boolean;
 }) {
   const comments = useVersionComments(versionId);
   const label = versionNumber ? `v${versionNumber}` : "this version";
@@ -244,7 +247,13 @@ export function CommentsTab({
           </ul>
         )}
       </div>
-      <CommentComposer materialId={materialId} versionId={versionId} />
+      <CommentComposer
+        key={versionId}
+        materialId={materialId}
+        versionId={versionId}
+        versionNumber={versionNumber}
+        obsolete={obsolete}
+      />
     </div>
   );
 }
