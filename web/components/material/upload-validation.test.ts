@@ -8,6 +8,7 @@ import {
   hasFieldErrors,
   isPdfFile,
   uploadSuccessMessage,
+  validateEditMaterial,
   validateNewMaterial,
   validatePdfFile,
   validateUploadVersion,
@@ -103,6 +104,35 @@ describe("validateNewMaterial", () => {
   });
 });
 
+describe("validateEditMaterial", () => {
+  it("passes a complete form", () => {
+    expect(
+      hasFieldErrors(
+        validateEditMaterial({
+          title: "Offer",
+          productId: "p1",
+          channel: "email",
+          audience: "consumer",
+          intendedUse: "Send",
+          ownerId: "u1",
+        }),
+      ),
+    ).toBe(false);
+  });
+
+  it("requires an owner", () => {
+    const errors = validateEditMaterial({
+      title: "Offer",
+      productId: "p1",
+      channel: "email",
+      audience: "consumer",
+      intendedUse: "Send",
+      ownerId: "",
+    });
+    expect(errors.ownerId).toBeDefined();
+  });
+});
+
 describe("validateUploadVersion", () => {
   it("only requires a valid file", () => {
     expect(hasFieldErrors(validateUploadVersion({ file: pdf, note: "" }))).toBe(false);
@@ -162,6 +192,18 @@ describe("success messages", () => {
 });
 
 describe("describeSubmitError", () => {
+  it("maps PRODUCT_LOCKED to the product field", () => {
+    expect(
+      describeSubmitError({
+        code: "PRODUCT_LOCKED",
+        message: "Product cannot change after review started",
+      }),
+    ).toEqual({
+      message: "Product cannot change after review started",
+      field: "productId",
+    });
+  });
+
   it("names the group for GROUP_TOO_SMALL", () => {
     const info = describeSubmitError({
       code: "GROUP_TOO_SMALL",

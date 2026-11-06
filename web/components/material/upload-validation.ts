@@ -83,6 +83,36 @@ export function validateNewMaterial(
   return errors;
 }
 
+export type EditMaterialValues = {
+  title: string;
+  productId: string;
+  channel: MaterialChannel;
+  audience: MaterialAudience;
+  intendedUse: string;
+  ownerId: string;
+};
+
+export type EditMaterialField =
+  | "title"
+  | "productId"
+  | "channel"
+  | "audience"
+  | "intendedUse"
+  | "ownerId";
+
+export function validateEditMaterial(
+  values: EditMaterialValues,
+): FieldErrors<EditMaterialField> {
+  const errors: FieldErrors<EditMaterialField> = {};
+  if (!values.title.trim()) errors.title = "Enter a title.";
+  if (!values.productId) errors.productId = "Choose a product.";
+  if (!values.channel) errors.channel = "Choose a channel.";
+  if (!values.audience) errors.audience = "Choose an audience.";
+  if (!values.intendedUse.trim()) errors.intendedUse = "Describe the intended use.";
+  if (!values.ownerId) errors.ownerId = "Choose an owner.";
+  return errors;
+}
+
 export type UploadVersionValues = { file: FileLike | null; note: string };
 
 export function validateUploadVersion(
@@ -138,6 +168,7 @@ const KNOWN_FIELDS: readonly string[] = [
   "channel",
   "audience",
   "intendedUse",
+  "ownerId",
   "file",
   "note",
 ];
@@ -148,6 +179,14 @@ export function describeSubmitError(error: {
   details?: Record<string, unknown>;
 }): SubmitErrorInfo {
   const details = error.details ?? {};
+  if (error.code === "PRODUCT_LOCKED") {
+    return {
+      message:
+        error.message ||
+        "Product cannot change after a review has started on this material.",
+      field: "productId",
+    };
+  }
   if (error.code === "GROUP_TOO_SMALL") {
     const name = details.groupName;
     return {

@@ -283,3 +283,9 @@ export function versionTitle(version: VersionSummary): string {
 export function approvedVersionNumber(material: MaterialDetail): number | undefined {
   return material.versions.find((v) => v.approvedUntil)?.number;
 }
+
+/** Matches server rule: product is locked once any version has entered review. */
+export function isProductEditable(material: MaterialDetail): boolean {
+  if (material.status === "obsolete") return false;
+  return !material.versions.some((version) => version.status !== "draft");
+}

@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useSyncExternalStore } from "react";
+import { useCallback, useState, useSyncExternalStore } from "react";
 import { formatDistanceToNow } from "date-fns";
 import {
   useMaterialActivity,
@@ -14,7 +14,9 @@ import { StatusBadge } from "@/components/status-badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { CommentComposer } from "./CommentComposer";
-import { MessageSquare, History } from "lucide-react";
+import { History, MessageSquare, Pencil } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { EditMaterialDialog } from "./EditMaterialDialog";
 import {
   approvedOnFor,
   approvedVersionNumber,
@@ -121,9 +123,11 @@ const AUDIENCE_LABELS: Record<string, string> = {
 };
 
 export function DetailsTab({ material }: { material: MaterialDetail }) {
+  const [editOpen, setEditOpen] = useState(false);
   const users = useUsers();
   const activity = useMaterialActivity(material.id);
   const owner = users.data?.find((u) => u.id === material.ownerId);
+  const canEdit = material.status !== "obsolete";
   const approvedOn = approvedOnFor(material, activity.data);
   const approvedUntil = approvedUntilFor(material);
   const approvedNumber = approvedVersionNumber(material);
@@ -134,7 +138,24 @@ export function DetailsTab({ material }: { material: MaterialDetail }) {
     ) : null;
 
   return (
-    <dl data-slot="material-details" className="divide-y px-4 py-2">
+    <>
+      <div className="flex items-center justify-between gap-2 border-b px-4 py-2">
+        <p className="text-sm font-medium">Metadata</p>
+        {canEdit ? (
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            className="h-8 gap-1.5 px-2"
+            onClick={() => setEditOpen(true)}
+          >
+            <Pencil className="size-3.5" aria-hidden />
+            Edit
+          </Button>
+        ) : null}
+      </div>
+      <EditMaterialDialog material={material} open={editOpen} onOpenChange={setEditOpen} />
+      <dl data-slot="material-details" className="divide-y px-4 py-2">
       <Field label="Title">{material.title}</Field>
       <Field label="Product">{material.productName}</Field>
       <Field label="Channel">{CHANNEL_LABELS[material.channel] ?? material.channel}</Field>
@@ -165,7 +186,8 @@ export function DetailsTab({ material }: { material: MaterialDetail }) {
       <Field label="Intended use">
         <span className="whitespace-pre-wrap">{material.intendedUse || "—"}</span>
       </Field>
-    </dl>
+      </dl>
+    </>
   );
 }
 

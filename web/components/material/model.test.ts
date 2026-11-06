@@ -10,6 +10,7 @@ import {
   buildStepperModel,
   expiringSoonDays,
   humanizeActivity,
+  isProductEditable,
   reviewStateLine,
   selectedVersionStatus,
   sortActivityNewestFirst,
@@ -290,5 +291,27 @@ describe("humanizeActivity", () => {
       ]),
     ).toBe("2025-12-01T00:00:00Z");
     expect(approvedOnFor(m, undefined)).toBeUndefined();
+  });
+});
+
+describe("isProductEditable", () => {
+  it("allows product changes on an untouched draft", () => {
+    expect(
+      isProductEditable(
+        material({
+          status: "draft",
+          versions: [{ id: "v1", number: 1, status: "draft", uploadedAt: "2026-01-01T00:00:00Z" }],
+          cycle: undefined,
+        }),
+      ),
+    ).toBe(true);
+  });
+
+  it("locks product after any version has entered review", () => {
+    expect(isProductEditable(material())).toBe(false);
+  });
+
+  it("locks product on obsolete materials", () => {
+    expect(isProductEditable(material({ status: "obsolete" }))).toBe(false);
   });
 });
