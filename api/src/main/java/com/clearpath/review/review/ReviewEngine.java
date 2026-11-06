@@ -142,6 +142,62 @@ public class ReviewEngine {
     }
 
     @Transactional
+    public ReviewCycle restartOnNewVersion(Material material, MaterialVersion version, AppUser startedBy) {
+        ensureNotObsolete(material);
+        if (material.getCurrentVersion() == null
+                || !material.getCurrentVersion().getId().equals(version.getId())) {
+            throw new ApiException(
+                    ErrorCode.VALIDATION, HttpStatus.BAD_REQUEST, "Review can only start on the current version");
+        }
+        validateWorkflowGroupSizes(material);
+
+        Instant now = Instant.now();
+        ReviewCycle cycle = DomainEntityFactory.create(ReviewCycle.class);
+        cycle.setId(UUID.randomUUID());
+        cycle.setMaterial(material);
+        cycle.setVersion(version);
+        cycle.setStatus(ReviewCycleStatus.active);
+        cycle.setCurrentPosition(1);
+        cycle.setApprovalLifetimeDays(material.getProduct().getApprovalLifetimeDays());
+        cycle.setStartedBy(startedBy);
+        cycle.setStartedAt(now);
+        reviewCycleRepository.save(cycle);
+
+        List<WorkflowStep> templateSteps =
+                workflowStepRepository.findByProductIdOrderByPositionAsc(material.getProduct().getId());
+        for (WorkflowStep templateStep : templateSteps) {
+            CycleStep cycleStep = DomainEntityFactory.create(CycleStep.class);
+            cycleStep.setId(UUID.randomUUID());
+            cycleStep.setCycle(cycle);
+            cycleStep.setPosition(templateStep.getPosition());
+            cycleStep.setName(templateStep.getName());
+            if (templateStep.getPosition() == 1) {
+                cycleStep.setOpenedAt(now);
+            }
+            cycleStepRepository.save(cycleStep);
+
+            List<StepRequirement> requirements = stepRequirementRepository.findByStepId(templateStep.getId());
+            for (StepRequirement requirement : requirements) {
+                CycleRequirement cycleRequirement = DomainEntityFactory.create(CycleRequirement.class);
+                cycleRequirement.setId(UUID.randomUUID());
+                cycleRequirement.setCycleStep(cycleStep);
+                cycleRequirement.setGroup(requirement.getGroup());
+                cycleRequirement.setGroupName(requirement.getGroup().getName());
+                cycleRequirement.setApprovalsRequired(requirement.getApprovalsRequired());
+                cycleRequirementRepository.save(cycleRequirement);
+            }
+        }
+
+        material.setUpdatedAt(now);
+        materialRepository.save(material);
+
+        reviewEventWriter.reviewRestarted(material, startedBy, version.getNumber(), now);
+        notifyStepOpened(material, startedBy, cycle, 1, now);
+
+        return cycle;
+    }
+
+    @Transactional
     public void abandonActiveCycle(UUID materialId) {
         reviewCycleRepository
                 .findByMaterialIdAndStatus(materialId, ReviewCycleStatus.active)
@@ -149,7 +205,7 @@ public class ReviewEngine {
                     Instant now = Instant.now();
                     cycle.setStatus(ReviewCycleStatus.abandoned);
                     cycle.setEndedAt(now);
-                    reviewCycleRepository.save(cycle);
+                    reviewCycleRepository.saveAndFlush(cycle);
                     Material material = cycle.getMaterial();
                     material.setUpdatedAt(now);
                     materialRepository.save(material);
