@@ -342,6 +342,7 @@ export function createSeedState(now = Date.now()): State {
     ]);
     approve(m, c, 200);
     activity(m.id, uid.maya, "owner_changed", ago(59), { ownerId: uid.morgan, ownerName: "Morgan Taylor" });
+    notify("morgan", m.id, "approved", ago(56), null, { step: 1, groupName: "Legal", actorName: "James Rivera" });
     notify("morgan", m.id, "fully_approved", ago(50), ago(49));
   }
 
@@ -501,7 +502,7 @@ export function createSeedState(now = Date.now()): State {
       createdAt: ago(3.9),
     });
     activity(m.id, uid.james, "comment_added", ago(3.9), { version: 1 });
-    notifyGroups(m.id, ["legal"], ago(4), { step: 1, stepName: "Legal review" }, { sofia: ago(2) });
+    notifyGroups(m.id, ["legal"], ago(4), { step: 1, stepName: "Legal review" }, { james: ago(3), sofia: ago(2) });
     notify("morgan", m.id, "approved", ago(4), null, { step: 1, groupName: "Legal", actorName: "James Rivera" });
     notify("morgan", m.id, "comment_added", ago(3.9), ago(3), { version: 1, actorName: "James Rivera" });
   }
@@ -598,7 +599,6 @@ export function createSeedState(now = Date.now()): State {
   favorite("morgan", "promo");
   favorite("casey", "draft");
   favorite("alex", "step2");
-  favorite("maya", "approved");
 
   for (const material of state.materials) {
     const times = state.activity

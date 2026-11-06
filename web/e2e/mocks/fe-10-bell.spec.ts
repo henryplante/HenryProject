@@ -169,13 +169,12 @@ test.describe("bell popover", () => {
     await page.waitForTimeout(400);
     await page.screenshot({ path: `${SHOTS}/morgan-popover.png` });
 
+    const morganCount = await unread(page);
     await list
       .getByRole("button", { name: /Someone approved Promotional APR email/ })
       .click();
     await expect(page).toHaveURL(/[?&]m=/);
-    await expect(
-      page.getByRole("button", { name: "Notifications, 0 unread" }),
-    ).toBeVisible();
+    await expect.poll(() => unread(page)).toBe(morganCount - 1);
   });
 
   test("empty state for a user with no notifications", async ({ page }) => {
