@@ -39,7 +39,10 @@ public class SessionFilter extends OncePerRequestFilter {
             return true;
         }
         String path = request.getRequestURI();
-        return "/api/health".equals(path) || "/api/session/login".equals(path);
+        if ("/api/health".equals(path) || "/api/session/login".equals(path)) {
+            return true;
+        }
+        return "/api/session".equals(path) && "GET".equalsIgnoreCase(request.getMethod());
     }
 
     @Override

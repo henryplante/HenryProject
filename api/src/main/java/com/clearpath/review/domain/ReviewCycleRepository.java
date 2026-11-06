@@ -17,4 +17,6 @@ public interface ReviewCycleRepository extends JpaRepository<ReviewCycle, UUID> 
 
     Optional<ReviewCycle> findFirstByVersionIdAndStatusOrderByEndedAtDescStartedAtDesc(
             UUID versionId, ReviewCycleStatus status);
+
+    boolean existsByMaterial_Product_Id(UUID productId);
 }
