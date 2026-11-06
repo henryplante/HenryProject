@@ -4,9 +4,9 @@ Working design for the 24-hour take-home. Edit this freely. Decisions below are 
 
 ClearPath Financial markets personal loans, credit cards, and mortgage prequalification, including through affiliate partners. Compliance review of that marketing currently happens in Excel and email, and that review is what slows campaigns down.
 
-The product is an internal review tool. A marketer uploads a piece of marketing material, picks the product, and starts that product’s workflow. The workflow assigns each step to whole groups (Legal, Compliance, and so on). Reviewers get a queue. They open the material, read the file, comment, and approve for their group. When every required approval on a step is in, the next step opens. When the last step finishes, the material is approved until a set date.
+The product is an internal review tool. A marketer uploads a piece of marketing material, picks the product, and starts that product’s workflow. The workflow assigns each step to whole groups (Legal, Compliance, and so on). Reviewers see that assignment in the task list pane. They open the material, read the file, comment, and approve for their group. When every required approval on a step is in, the next step opens. When the last step finishes, the material is approved until a set date.
 
-The outcome to show: nobody has to know who to email, a new file sends everyone back to step 1, and the inbox shows which reviews have been sitting.
+The outcome to show: nobody has to know who to email, a new file sends everyone back to step 1, and the task list pane shows which reviews have been sitting. The bell is a separate event feed, described below.
 
 ## Scope
 
@@ -16,8 +16,8 @@ In this version:
 - One linear workflow per product, edited in admin
 - Steps that require N approvals from one or more groups
 - Tasks assigned to every member of those groups
-- Inbox, material page, library, admin
-- In-app notifications
+- Task list pane, material view, library, admin
+- Bell notifications, which are a separate feed from the task list
 - Seed data that fills every state a demo needs
 
 Fixed behavior, not settings:
@@ -40,8 +40,10 @@ Later, and easy to describe from this model: email delivery, side-by-side versio
 | Workflow template | The ordered steps stored on the product. |
 | Review cycle | One run of the template against one version. The cycle keeps its own copy of the steps from the moment it started. |
 | Review | One person’s approval for one group on one step. |
+| Task list | A pane on the main screen. A live queue computed from review state: what you can approve now, workflows you own, and steps that have not reached you yet. |
+| Notification | A bell item. A stored event (“a comment was added”, “your step opened”). Read or unread. Independent of whether a task row exists. |
 
-The material has an owner. That person is the uploader until an admin or the owner reassigns it. The owner is who hears about comments and stage changes. The workflow template has no separate owner.
+The material has an owner. That person is the uploader until an admin or the owner reassigns it. The owner hears about comments and stage changes through the bell. The workflow template has no separate owner.
 
 ## Statuses
 
@@ -99,9 +101,31 @@ The product can be changed only before the first cycle has ever started.
 
 Anyone signed in can upload a new version.
 
-## Notifications
+## Task list and the bell
 
-In-app only, shown from a bell:
+These are different surfaces. The task list is the work queue. The bell is a feed of events. One does not stand in for the other.
+
+The same moment can touch both. When a step opens, each new reviewer gets a row in the task list and a bell item that their step opened. Marking that bell item read leaves the row in the pane. Approving removes the row from Your tasks even if the bell item was never opened. An owner can get a bell item, such as “someone approved,” for a material that is not in their Your tasks tab.
+
+### Task list pane
+
+The default screen is two columns. The left column is the task list pane. The rest of the screen is the selected material, or an empty state when nothing is selected.
+
+The pane has three tabs:
+
+1. **Your tasks** (default) — approvals you can make on the current step. The row stays until you approve for that group, the group’s count is already met, or a new file restarts the cycle. Once the count is met, the remaining people in that group drop off this tab. They can still open the material and approve additionally. Everyone can see every material.
+2. **Your workflows** — materials you own that are draft or in review.
+3. **Upcoming** — you belong to a group on a later step of a running cycle, and you have nothing to do on the current step.
+
+A row shows title, product, version, step name, and days waiting. A row waiting more than 3 days is visibly overdue. That aging is how a lead sees the bottleneck.
+
+Selecting a row opens that material in the main area. The pane stays put.
+
+### Bell
+
+In-app only. The bell sits in the header and opens a list of notification records, newest first, each read or unread. It is not a tab of the task list, and it is not how work is assigned.
+
+Events:
 
 - A reviewer’s step has opened
 - A comment was added on a material they own
@@ -110,6 +134,7 @@ In-app only, shown from a bell:
 - A material they own was fully approved
 - A material they own was marked as expired or obsolete
 
+Opening an item marks it read and shows that material. Reading or clearing the bell does not complete a task. A task does not depend on a bell item still being unread.
 
 ## Screens
 
@@ -119,21 +144,11 @@ A user switcher in the header lists the seeded people and changes who you are ac
 
 Navigation:
 
-- **Inbox** — default
+- **Home** — task list pane and the open material. Default.
 - **Library**
 - **Admin** — visible to admins
 
-### Inbox
-
-Three tabs:
-
-1. **Your tasks** (default) — approvals you can make on the current step.
-2. **Your workflows** — materials you own that are draft or in review.
-3. **Upcoming** — you belong to a group on a later step of a running cycle, and you have nothing to do on the current step.
-
-A row shows title, product, version, step name, and days waiting. A row waiting more than 3 days is visibly overdue. That aging is how a lead sees the bottleneck.
-
-Clicking a row opens the material.
+The header also holds New, the bell, and the user switcher.
 
 ### Material
 
@@ -152,7 +167,7 @@ Activity entries cover: uploaded, review started, approved as {group}, review re
 
 All materials. Search by title. Filter by product, status, channel, owned by me, and favorites. A star on each row, per user.
 
-**New** lives in the library and in the inbox header. Creating a material asks for:
+**New** lives in the library and in the header. Creating a material asks for:
 
 - Title
 - Product
@@ -200,15 +215,15 @@ Sketch, names can change:
 - **Comment** — version, author, body, created at
 - **Activity** — material, actor, type, detail, created at
 - **Favorite** — user, material
-- **Notification** — user, material, kind, read at, created at
+- **Notification** — user, material, kind, read at, created at. These rows are the bell only.
 
 Status shown in the UI comes from obsolete at, an active cycle, and the approved-until date. It does not need its own column if that stays easy to query.
 
-Tasks are not a separate table. Your tasks are: active cycle, your membership matches a requirement on the open step, you have not already approved for that group, and that group’s count is still short.
+The task list is not the notification table, and it is not its own table. Your tasks are a query: active cycle, your membership matches a requirement on the open step, you have not already approved for that group, and that group’s count is still short. Your workflows and Upcoming are separate queries behind the other two tabs. A bell row is written when an event happens and then just sits until someone reads it.
 
 ## Seed and demo
 
-Seed enough that every tab and status has rows on first load:
+Seed enough that every tab of the task list pane, the bell, and every status has rows on first load:
 
 - Groups: Marketing, Legal, Compliance
 - About eight users spread across those groups, one of them an admin who is also in Marketing
@@ -219,7 +234,7 @@ Passwords can all be the same demo password. The header switcher is what the liv
 
 Walkthrough to rehearse:
 
-1. Land on Your tasks and open the overdue affiliate personal-loan email.
+1. Land on Home. In the task list pane, on Your tasks, open the overdue affiliate personal-loan email. The material opens beside the pane.
 2. Switch to a Legal user. Approve as Legal. The stepper moves to 1/2.
 3. Switch to the owner. A comment is already on the version. Upload v3. The cycle is back on step 1, and the banner still names the older approved-for-use version.
 4. Switch through the remaining reviewers until the banner shows Approved and an until-date.
@@ -237,12 +252,12 @@ Suggested, change if you prefer:
 Build in this order so a clickable demo exists early:
 
 1. Schema and seed
-2. Inbox and material page reading seeded data
+2. Task list pane and material view reading seeded data
 3. Approve, quorum, and step advance
 4. Upload and restart
 5. Library search, filters, favorites
 6. Admin editors
-7. Activity and the notification bell
+7. Activity log, and the bell as its own feed
 8. Overdue styling, expiry badge, empty states
 
 ## Assumptions to say in the presentation
@@ -252,4 +267,5 @@ Build in this order so a clickable demo exists early:
 - Comments are the feedback loop. A new file is what restarts review. The status during all of that is In review.
 - The last approved file stays approved for use while a newer version is in review.
 - The cycle stores its own copy of the steps from the moment it started.
-- PDF only. Notifications are in-app. Anyone signed in may upload and comment. Only assignees approve.
+- PDF only. Anyone signed in may upload and comment. Only assignees approve.
+- The task list pane is the live queue. The bell is a separate in-app event feed. Reading a bell item does not finish a task.
