@@ -1,5 +1,6 @@
 server:
-  port: ${SERVER_PORT:8080}
+  port: ${PORT:${SERVER_PORT:8080}}
+  shutdown: graceful
 
 spring:
   jackson:
@@ -12,6 +13,10 @@ spring:
     url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/clearpath}
     username: ${SPRING_DATASOURCE_USERNAME:clearpath}
     password: ${SPRING_DATASOURCE_PASSWORD:clearpath}
+    hikari:
+      maximum-pool-size: 5
+      minimum-idle: 1
+      connection-timeout: 30000
   jpa:
     hibernate:
       ddl-auto: validate
@@ -21,8 +26,11 @@ spring:
     baseline-on-migrate: false
     fail-on-missing-locations: false
     locations: classpath:db/migration
+  lifecycle:
+    timeout-per-shutdown-phase: 30s
 
 clearpath:
   session:
     secret: ${SESSION_SECRET:dev-change-me-in-production}
     cookie-name: clearpath_session
+    cookie-secure: ${SESSION_COOKIE_SECURE:false}

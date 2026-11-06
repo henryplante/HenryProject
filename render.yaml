@@ -1,0 +1,33 @@
+# Render Blueprint — ClearPath Review API (Spring Boot)
+#
+# Postgres: use Neon free tier (recommended) and paste the connection string into DATABASE_URL.
+# Alternative: uncomment the Render Postgres block below and point DATABASE_URL at the
+# generated connection string from the database service.
+
+services:
+  - type: web
+    name: clearpath-api
+    runtime: docker
+    rootDir: api
+    plan: free
+    healthCheckPath: /api/health
+    envVars:
+      - key: SPRING_PROFILES_ACTIVE
+        value: prod
+      - key: DATABASE_URL
+        sync: false
+      - key: SESSION_SECRET
+        generateValue: true
+      - key: SESSION_COOKIE_SECURE
+        value: "true"
+      - key: SEED_ON_STARTUP
+        value: "true"
+
+# databases:
+#   - name: clearpath-postgres
+#     plan: free
+#     databaseName: clearpath
+#     user: clearpath
+#
+# After creating the database, set the web service DATABASE_URL to the internal or external
+# connection string Render provides (postgresql://…).

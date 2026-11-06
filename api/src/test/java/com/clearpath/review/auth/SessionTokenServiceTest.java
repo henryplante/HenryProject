@@ -14,7 +14,7 @@ class SessionTokenServiceTest {
 
     @BeforeEach
     void setUp() {
-        SessionProperties properties = new SessionProperties("unit-test-secret", "clearpath_session");
+        SessionProperties properties = new SessionProperties("unit-test-secret", "clearpath_session", false);
         service = new SessionTokenService(new ObjectMapper(), properties);
     }
 

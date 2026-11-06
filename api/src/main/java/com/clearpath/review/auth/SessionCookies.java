@@ -43,6 +43,7 @@ public class SessionCookies {
     private ResponseCookie buildCookie(String value, Duration maxAge) {
         return ResponseCookie.from(sessionProperties.cookieName(), value)
                 .httpOnly(true)
+                .secure(sessionProperties.cookieSecure())
                 .path("/")
                 .maxAge(maxAge)
                 .sameSite("Lax")
