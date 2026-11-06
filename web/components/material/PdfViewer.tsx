@@ -12,6 +12,7 @@ import {
 } from "react";
 import { Document, Page } from "react-pdf";
 import { ChevronLeft, ChevronRight, Minus, Plus, ScanLine } from "lucide-react";
+import { ErrorState } from "@/components/error-state";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 
@@ -53,25 +54,19 @@ function PdfSkeleton({ width }: { width?: number }) {
 
 function PdfError({ url, onRetry }: { url: string; onRetry: () => void }) {
   return (
-    <div
-      role="alert"
-      data-slot="pdf-error"
-      className="flex flex-col items-center gap-3 px-6 py-16 text-center"
-    >
-      <h2 className="text-base font-medium">Could not load this PDF</h2>
-      <p className="max-w-sm text-sm text-muted-foreground">
-        The file may be missing or unreadable. Try again, or open it in a new tab.
-      </p>
-      <div className="flex gap-2">
-        <Button variant="outline" size="sm" onClick={onRetry}>
-          Try again
-        </Button>
-        <Button variant="ghost" size="sm" asChild>
-          <a href={url} target="_blank" rel="noreferrer">
-            Open file
-          </a>
-        </Button>
-      </div>
+    <div data-slot="pdf-error">
+      <ErrorState
+        title="Could not load this PDF"
+        description="The file may be missing or unreadable. Try again, or open it in a new tab."
+        onRetry={onRetry}
+        extraAction={
+          <Button variant="ghost" size="sm" asChild>
+            <a href={url} target="_blank" rel="noreferrer">
+              Open file
+            </a>
+          </Button>
+        }
+      />
     </div>
   );
 }
@@ -161,6 +156,7 @@ function PdfViewerInner({
     body = (
       <Document
         file={url}
+        suspense={false}
         options={options}
         loading={<PdfSkeleton width={pageWidth} />}
         error={<PdfError url={url} onRetry={onRetry} />}
@@ -194,7 +190,7 @@ function PdfViewerInner({
 
   return (
     <div data-slot="pdf-viewer" className="flex min-h-0 flex-1 flex-col bg-muted/40">
-      <div className="flex items-center justify-between gap-3 border-b bg-background px-4 py-1.5">
+      <div className="flex h-11 shrink-0 items-center justify-between gap-3 border-b bg-background px-4">
         <div className="flex items-center gap-1">
           <Button
             variant="ghost"
@@ -210,7 +206,11 @@ function PdfViewerInner({
             className="min-w-24 whitespace-nowrap text-center text-sm tabular-nums text-muted-foreground"
             aria-live="polite"
           >
-            {numPages > 0 ? `Page ${currentPage} of ${numPages}` : "Loading…"}
+            {numPages > 0
+              ? `Page ${currentPage} of ${numPages}`
+              : failed
+                ? "Unavailable"
+                : "Loading…"}
           </span>
           <Button
             variant="ghost"
@@ -232,7 +232,7 @@ function PdfViewerInner({
             variant="ghost"
             size="icon-sm"
             aria-label="Zoom out"
-            disabled={zoom <= MIN_ZOOM}
+            disabled={failed || zoom <= MIN_ZOOM}
             onClick={() => setZoom((z) => clampZoom(z - ZOOM_STEP))}
           >
             <Minus />
@@ -244,7 +244,7 @@ function PdfViewerInner({
             variant="ghost"
             size="icon-sm"
             aria-label="Zoom in"
-            disabled={zoom >= MAX_ZOOM}
+            disabled={failed || zoom >= MAX_ZOOM}
             onClick={() => setZoom((z) => clampZoom(z + ZOOM_STEP))}
           >
             <Plus />
@@ -329,6 +329,7 @@ function LazyPage({
       {near ? (
         <Page
           pageNumber={page}
+          suspense={false}
           width={width}
           renderAnnotationLayer={false}
           onRenderSuccess={() => setRendered(true)}

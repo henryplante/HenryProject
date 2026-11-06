@@ -183,14 +183,14 @@ describe("stepper model", () => {
 describe("review state line", () => {
   it("describes the active step with group counts", () => {
     const m = material();
-    expect(reviewStateLine(m, selectedVersionStatus(m, NOW), NOW)).toBe(
-      "In review — Step 1 Legal 0/2",
+    expect(reviewStateLine(m, selectedVersionStatus(m, NOW))).toBe(
+      "Step 1 of 2 · Legal 0/2",
     );
   });
 
   it("says no review started for drafts without a cycle", () => {
     const m = material({ status: "draft", cycle: undefined });
-    expect(reviewStateLine(m, { kind: "draft" }, NOW)).toBe("No review started");
+    expect(reviewStateLine(m, { kind: "draft" })).toBe("No review started");
   });
 
   it("summarizes completed cycles", () => {
@@ -200,8 +200,8 @@ describe("review state line", () => {
       steps: cycle.steps.map((s) => ({ ...s, state: "completed" })),
     };
     const m = material({ cycle: done, selectedVersionId: "v1" });
-    expect(reviewStateLine(m, selectedVersionStatus(m, NOW), NOW)).toBe(
-      "Approved — 2 of 2 review steps complete",
+    expect(reviewStateLine(m, selectedVersionStatus(m, NOW))).toBe(
+      "2 of 2 review steps complete",
     );
   });
 });

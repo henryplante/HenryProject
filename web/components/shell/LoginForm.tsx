@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { isApiError, useLogin, useSession } from "@/lib/api";
+import { nextFromSearch } from "@/lib/auth-redirect";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -26,7 +27,7 @@ export function LoginForm() {
 
   const signedIn = session.data?.user != null;
   useEffect(() => {
-    if (signedIn) router.replace("/");
+    if (signedIn) router.replace(nextFromSearch(window.location.search) ?? "/");
   }, [signedIn, router]);
 
   if (session.isLoading || signedIn) {
@@ -43,7 +44,10 @@ export function LoginForm() {
   const submit = (nextEmail: string, nextPassword: string) => {
     login.mutate(
       { email: nextEmail, password: nextPassword },
-      { onSuccess: () => router.replace("/") },
+      {
+        onSuccess: () =>
+          router.replace(nextFromSearch(window.location.search) ?? "/"),
+      },
     );
   };
 

@@ -1,9 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import { Pencil, Plus, UserPlus } from "lucide-react";
+import { Pencil, Plus, UserPlus, UsersRound } from "lucide-react";
 import { toast } from "sonner";
 import { EmptyState } from "@/components/empty-state";
+import { ErrorState } from "@/components/error-state";
 import { AvatarGroup, AvatarGroupCount } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import {
@@ -67,9 +68,22 @@ export function GroupsTab() {
       {groups.isLoading || users.isLoading ? (
         <ListSkeleton />
       ) : groups.isError ? (
-        <FormError message={errorMessage(groups.error)} />
+        <ErrorState
+          size="sm"
+          className="rounded-lg border border-dashed"
+          title="Could not load groups"
+          description={errorMessage(groups.error)}
+          onRetry={() => void Promise.all([groups.refetch(), users.refetch()])}
+          retrying={groups.isFetching}
+        />
       ) : (groups.data ?? []).length === 0 ? (
-        <EmptyState title="No groups yet" description="Add a group such as Legal or Compliance." />
+        <EmptyState
+          size="sm"
+          className="rounded-lg border border-dashed"
+          icon={<UsersRound className="size-5" />}
+          title="No groups yet"
+          description="Add a group such as Legal or Compliance."
+        />
       ) : (
         <ul className="flex flex-col divide-y rounded-lg border">
           {(groups.data ?? []).map((group) => {

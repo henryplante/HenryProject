@@ -1,12 +1,13 @@
 "use client";
 
 import { useState } from "react";
-import { Pencil, Plus } from "lucide-react";
+import { Package, Pencil, Plus } from "lucide-react";
 import { EmptyState } from "@/components/empty-state";
+import { ErrorState } from "@/components/error-state";
 import { Button } from "@/components/ui/button";
 import { useGroups, useProducts, type Product } from "@/lib/api";
 import { ProductEditorDialog } from "./ProductEditorDialog";
-import { FormError, ListSkeleton, errorMessage } from "./shared";
+import { ListSkeleton, errorMessage } from "./shared";
 import { summarizeWorkflow } from "./workflow-draft";
 
 export function ProductsTab() {
@@ -35,9 +36,19 @@ export function ProductsTab() {
       {products.isLoading || groups.isLoading ? (
         <ListSkeleton />
       ) : products.isError ? (
-        <FormError message={errorMessage(products.error)} />
+        <ErrorState
+          size="sm"
+          className="rounded-lg border border-dashed"
+          title="Could not load products"
+          description={errorMessage(products.error)}
+          onRetry={() => void Promise.all([products.refetch(), groups.refetch()])}
+          retrying={products.isFetching}
+        />
       ) : (products.data ?? []).length === 0 ? (
         <EmptyState
+          size="sm"
+          className="rounded-lg border border-dashed"
+          icon={<Package className="size-5" />}
           title="No products yet"
           description="Add a product with its approval workflow."
         />

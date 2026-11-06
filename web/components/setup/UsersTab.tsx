@@ -1,9 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import { Pencil, Plus } from "lucide-react";
+import { Pencil, Plus, UserRound } from "lucide-react";
 import { toast } from "sonner";
 import { EmptyState } from "@/components/empty-state";
+import { ErrorState } from "@/components/error-state";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -70,9 +71,22 @@ export function UsersTab() {
       {users.isLoading || groups.isLoading ? (
         <ListSkeleton />
       ) : users.isError ? (
-        <FormError message={errorMessage(users.error)} />
+        <ErrorState
+          size="sm"
+          className="rounded-lg border border-dashed"
+          title="Could not load users"
+          description={errorMessage(users.error)}
+          onRetry={() => void Promise.all([users.refetch(), groups.refetch()])}
+          retrying={users.isFetching}
+        />
       ) : (users.data ?? []).length === 0 ? (
-        <EmptyState title="No users yet" description="Add the first user to get started." />
+        <EmptyState
+          size="sm"
+          className="rounded-lg border border-dashed"
+          icon={<UserRound className="size-5" />}
+          title="No users yet"
+          description="Add the first user to get started."
+        />
       ) : (
         <div className="rounded-lg border">
           <Table>

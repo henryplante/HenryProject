@@ -119,7 +119,7 @@ test("draft workflows and tab-specific empty states", async ({ page }) => {
   await loginAs(page, "casey.brooks@clearpath.example");
   await page.getByRole("tab", { name: /Your workflows/ }).click();
   await expect(rowFor(page, "Mortgage prequal landing page draft")).toContainText(
-    "Not submitted",
+    "Draft · not submitted",
   );
 
   await loginAs(page, "james.rivera@clearpath.example");

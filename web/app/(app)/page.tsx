@@ -20,6 +20,7 @@ export default async function HomePage({ searchParams }: HomeProps) {
         <TaskPane selectedMaterialId={materialId} />
       </aside>
       <section className="min-h-0 overflow-y-auto">
+        {materialId ? null : <h1 className="sr-only">Home</h1>}
         <MaterialView materialId={materialId} versionId={versionId} />
       </section>
     </div>

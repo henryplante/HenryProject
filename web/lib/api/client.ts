@@ -1,3 +1,4 @@
+import { currentPath, loginHref } from "../auth-redirect";
 import type { ErrorCode, ErrorResponse } from "./types";
 
 export type ApiErrorCode = ErrorCode | "UNKNOWN" | "NETWORK";
@@ -41,7 +42,7 @@ type ApiConfig = {
 function redirectToLogin() {
   if (typeof window === "undefined") return;
   if (window.location.pathname.startsWith("/login")) return;
-  window.location.assign("/login");
+  window.location.assign(loginHref(currentPath(window.location)));
 }
 
 const config: ApiConfig = {

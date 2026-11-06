@@ -4,10 +4,12 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 import {
-  formatDaysWaiting,
   formatVersion,
+  isDraftRow,
   isOverdue,
+  taskAgeLabel,
   taskHref,
+  taskStepLabel,
 } from "./format";
 
 type TaskRowItemProps = {
@@ -17,6 +19,7 @@ type TaskRowItemProps = {
 
 export function TaskRowItem({ row, selected }: TaskRowItemProps) {
   const overdue = isOverdue(row);
+  const draft = isDraftRow(row);
   return (
     <li>
       <Link
@@ -24,6 +27,7 @@ export function TaskRowItem({ row, selected }: TaskRowItemProps) {
         aria-current={selected ? "true" : undefined}
         data-slot="task-row"
         data-overdue={overdue ? "true" : undefined}
+        data-draft={draft ? "true" : undefined}
         data-selected={selected ? "true" : undefined}
         className={cn(
           "flex flex-col gap-1 border-b border-l-[3px] px-4 py-3 text-sm outline-none transition-colors hover:bg-muted/60 focus-visible:bg-muted focus-visible:ring-[3px] focus-visible:ring-inset focus-visible:ring-ring/50",
@@ -38,7 +42,7 @@ export function TaskRowItem({ row, selected }: TaskRowItemProps) {
           {row.productName} · {formatVersion(row.versionNumber)}
         </span>
         <span className="flex items-center justify-between gap-2 text-xs">
-          <span className="truncate text-muted-foreground">{row.stepName}</span>
+          <span className="truncate text-muted-foreground">{taskStepLabel(row)}</span>
           <span className="flex shrink-0 items-center gap-1.5">
             {overdue ? <Badge variant="destructive">Overdue</Badge> : null}
             <span
@@ -47,7 +51,7 @@ export function TaskRowItem({ row, selected }: TaskRowItemProps) {
                 overdue ? "font-medium text-destructive" : "text-muted-foreground",
               )}
             >
-              {formatDaysWaiting(row.daysWaiting)}
+              {taskAgeLabel(row)}
             </span>
           </span>
         </span>

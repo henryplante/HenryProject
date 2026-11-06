@@ -21,6 +21,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Skeleton } from "@/components/ui/skeleton";
+import { markExplicitLogout } from "@/lib/auth-redirect";
 import { initials } from "@/components/shell/initials";
 
 export function UserSwitcher() {
@@ -49,6 +50,7 @@ export function UserSwitcher() {
   };
 
   const onLogout = () => {
+    markExplicitLogout();
     logout.mutate(undefined, {
       onSuccess: () => router.replace("/login"),
       onError: (error) => toast.error(error.message || "Could not log out"),
@@ -64,10 +66,11 @@ export function UserSwitcher() {
           className="gap-2 px-1.5"
           aria-label={`Signed in as ${user.name}. Switch user`}
         >
-          <Avatar size="sm">
-            <AvatarFallback className="text-[10px]">
-              {initials(user.name)}
-            </AvatarFallback>
+          <Avatar size="sm" aria-hidden="true">
+            <AvatarFallback
+              data-initials={initials(user.name)}
+              className="text-[10px] before:content-[attr(data-initials)]"
+            />
           </Avatar>
           <span className="hidden text-sm font-medium sm:inline">
             {user.name}

@@ -34,7 +34,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
         {ready ? children : null}
-        <Toaster theme="light" />
+        <Toaster theme="light" position="bottom-center" />
       </TooltipProvider>
     </QueryClientProvider>
   );

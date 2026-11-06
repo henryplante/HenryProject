@@ -1,4 +1,3 @@
-import { differenceInCalendarDays, format } from "date-fns";
 import type {
   ActivityEntry,
   CycleStepView,
@@ -7,8 +6,23 @@ import type {
   MaterialStatus,
   VersionSummary,
 } from "@/lib/api/types";
+import {
+  EXPIRING_SOON_DAYS,
+  STATUS_LABELS,
+  daysUntil,
+  expiringSoonDaysFor,
+  expiringSoonLabel,
+  formatDate,
+  statusLabel as sharedStatusLabel,
+} from "@/lib/status";
 
-export const EXPIRING_SOON_DAYS = 30;
+export {
+  EXPIRING_SOON_DAYS,
+  STATUS_LABELS,
+  daysUntil,
+  expiringSoonLabel,
+  formatDate,
+};
 
 export type DisplayStatusKind = MaterialStatus;
 
@@ -17,30 +31,8 @@ export type DisplayStatus = {
   approvedUntil?: string;
 };
 
-export const STATUS_LABELS: Record<DisplayStatusKind, string> = {
-  draft: "Draft",
-  in_review: "In review",
-  approved: "Approved",
-  expired: "Expired",
-  obsolete: "Obsolete",
-};
-
-export function formatDate(iso: string | undefined | null): string {
-  if (!iso) return "—";
-  const date = new Date(iso);
-  if (Number.isNaN(date.getTime())) return "—";
-  return format(date, "MMM d, yyyy");
-}
-
 export function statusLabel(status: DisplayStatus): string {
-  const base = STATUS_LABELS[status.kind];
-  if (status.kind === "approved" && status.approvedUntil) {
-    return `${base} until ${formatDate(status.approvedUntil)}`;
-  }
-  if (status.kind === "expired" && status.approvedUntil) {
-    return `${base} ${formatDate(status.approvedUntil)}`;
-  }
-  return base;
+  return sharedStatusLabel(status.kind, status.approvedUntil);
 }
 
 export function versionDisplayStatus(
@@ -86,24 +78,11 @@ export function selectedVersionStatus(
   return versionDisplayStatus(version, now);
 }
 
-export function daysUntil(iso: string, now: Date = new Date()): number {
-  return differenceInCalendarDays(new Date(iso), now);
-}
-
 export function expiringSoonDays(
   status: DisplayStatus,
   now: Date = new Date(),
 ): number | null {
-  if (status.kind !== "approved" || !status.approvedUntil) return null;
-  if (new Date(status.approvedUntil).getTime() <= now.getTime()) return null;
-  const days = daysUntil(status.approvedUntil, now);
-  return days <= EXPIRING_SOON_DAYS ? Math.max(days, 0) : null;
-}
-
-export function expiringSoonLabel(days: number): string {
-  if (days <= 0) return "Expires today";
-  if (days === 1) return "Expires in 1 day";
-  return `Expires in ${days} days`;
+  return expiringSoonDaysFor(status.kind, status.approvedUntil, now);
 }
 
 export type StepperRequirement = {
@@ -168,25 +147,18 @@ export function buildStepperModel(cycle: CycleView | undefined): StepperModel {
 export function reviewStateLine(
   material: MaterialDetail,
   status: DisplayStatus,
-  now: Date = new Date(),
 ): string {
   if (status.kind === "obsolete") return "Marked obsolete — no further review";
   const model = buildStepperModel(material.cycle);
   if (model.kind === "empty") return "No review started";
   if (!model.completed) {
     const active = model.steps.find((s) => s.position === model.activePosition);
-    if (!active) return "In review";
+    if (!active) return "Review in progress";
     const counts = active.requirements.map((r) => r.label).join(", ");
-    return `In review — Step ${active.position} ${counts}`.trim();
+    return `Step ${active.position} of ${model.steps.length} · ${counts}`.trim();
   }
   const total = model.steps.length;
-  const steps = `${total} of ${total} review ${total === 1 ? "step" : "steps"} complete`;
-  if (status.kind === "expired") {
-    return `Approval expired ${formatDate(status.approvedUntil)} — ${steps}`;
-  }
-  const soon = expiringSoonDays(status, now);
-  if (soon !== null) return `${expiringSoonLabel(soon)} — ${steps}`;
-  return `Approved — ${steps}`;
+  return `${total} of ${total} review ${total === 1 ? "step" : "steps"} complete`;
 }
 
 export type HumanizedActivity = {

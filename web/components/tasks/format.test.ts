@@ -1,6 +1,10 @@
 import { describe, expect, it } from "vitest";
 import {
   EMPTY_COPY,
+  formatDraftAge,
+  isDraftRow,
+  taskAgeLabel,
+  taskStepLabel,
   formatDaysWaiting,
   formatVersion,
   isOverdue,
@@ -61,5 +65,28 @@ describe("EMPTY_COPY", () => {
       "You do not own any drafts or reviews in progress",
     );
     expect(EMPTY_COPY.upcoming.title).toBe("Nothing upcoming");
+  });
+});
+
+describe("draft rows in Your workflows", () => {
+  const draft = { tab: "workflows" as const, stepName: "Not submitted", daysWaiting: 6, overdue: true };
+
+  it("recognizes the not-submitted step only on the workflows tab", () => {
+    expect(isDraftRow(draft)).toBe(true);
+    expect(isDraftRow({ tab: "mine", stepName: "Not submitted" })).toBe(false);
+    expect(isDraftRow({ tab: "workflows", stepName: "Legal review" })).toBe(false);
+  });
+
+  it("never marks drafts overdue, even when the server does", () => {
+    expect(isOverdue(draft)).toBe(false);
+    expect(isOverdue({ ...draft, stepName: "Legal review" })).toBe(true);
+  });
+
+  it("describes the upload age instead of days waiting", () => {
+    expect(taskStepLabel(draft)).toBe("Draft · not submitted");
+    expect(taskAgeLabel(draft)).toBe("Uploaded 6 days ago");
+    expect(taskAgeLabel({ ...draft, stepName: "Legal review" })).toBe("6 days waiting");
+    expect(formatDraftAge(0)).toBe("Uploaded today");
+    expect(formatDraftAge(1)).toBe("Uploaded yesterday");
   });
 });

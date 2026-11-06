@@ -82,7 +82,7 @@ test.describe("new material, upload version, comments", () => {
     await expect(page.getByText("“Reviewed right away” created — review started")).toBeVisible();
     const banner = page.locator('[data-slot="material-banner"]');
     await expect(banner.locator('[data-slot="material-state-line"]')).toHaveText(
-      "In review — Step 1 Legal 0/2",
+      "Step 1 of 2 · Legal 0/2",
     );
     await expect(page.locator('[data-slot="review-stepper"] [data-state="active"]')).toContainText(
       "Legal 0/2",
@@ -185,7 +185,7 @@ test.describe("new material, upload version, comments", () => {
     const stepper = page.locator('[data-slot="review-stepper"]');
     await expect(stepper.locator('[data-state="active"]')).toContainText("Legal 0/2");
     await expect(page.locator('[data-slot="material-state-line"]')).toHaveText(
-      "In review — Step 1 Legal 0/2",
+      "Step 1 of 2 · Legal 0/2",
     );
 
     await page.getByRole("button", { name: /Version, v3 selected/ }).click();

@@ -1,10 +1,11 @@
 "use client";
 
-import { LibraryIcon, TriangleAlertIcon } from "lucide-react";
+import { LibraryIcon, SearchXIcon } from "lucide-react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useCallback, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { EmptyState } from "@/components/empty-state";
+import { ErrorState } from "@/components/error-state";
 import { NewMaterialButton } from "@/components/material/NewMaterialButton";
 import { Button } from "@/components/ui/button";
 import {
@@ -83,15 +84,11 @@ function LibraryContent() {
   let body: React.ReactNode;
   if (materials.isError && !materials.data) {
     body = (
-      <EmptyState
-        icon={<TriangleAlertIcon className="size-6" aria-hidden />}
+      <ErrorState
         title="Couldn't load materials"
         description="Something went wrong while loading the library."
-        action={
-          <Button variant="outline" size="sm" onClick={() => materials.refetch()}>
-            Try again
-          </Button>
-        }
+        onRetry={() => materials.refetch()}
+        retrying={materials.isFetching}
       />
     );
   } else if (!materials.data) {
@@ -99,7 +96,7 @@ function LibraryContent() {
   } else if (items.length === 0 && filtered) {
     body = (
       <EmptyState
-        icon={<LibraryIcon className="size-6" aria-hidden />}
+        icon={<SearchXIcon className="size-6" aria-hidden />}
         title="No materials match these filters"
         description="Try a different search or remove a filter."
         action={
@@ -114,8 +111,7 @@ function LibraryContent() {
       <EmptyState
         icon={<LibraryIcon className="size-6" aria-hidden />}
         title="No materials yet"
-        description="Upload a PDF to start a review."
-        action={<NewMaterialButton />}
+        description="Use New to upload a PDF and start a review."
       />
     );
   } else {

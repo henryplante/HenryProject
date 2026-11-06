@@ -11,7 +11,7 @@ export function ReviewStepper({ cycle }: { cycle: CycleView | undefined }) {
       <div
         data-slot="review-stepper"
         data-empty="true"
-        className="border-b px-6 py-3 text-sm text-muted-foreground"
+        className="shrink-0 border-b px-6 py-3 text-sm text-muted-foreground"
       >
         No review started
       </div>
@@ -22,7 +22,7 @@ export function ReviewStepper({ cycle }: { cycle: CycleView | undefined }) {
     <nav
       aria-label="Review progress"
       data-slot="review-stepper"
-      className="overflow-x-auto border-b px-6 py-4"
+      className="shrink-0 overflow-x-auto border-b px-6 py-4"
     >
       <ol className="flex min-w-max items-start gap-3">
         {model.steps.map((step, index) => {

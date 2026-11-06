@@ -1,6 +1,5 @@
 "use client";
 
-import { format } from "date-fns";
 import {
   ArrowDownIcon,
   ArrowUpDownIcon,
@@ -20,6 +19,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import type { MaterialSummary } from "@/lib/api/types";
+import { formatDate } from "@/lib/status";
 import { cn } from "@/lib/utils";
 import { ExpiringBadge, StatusBadge } from "./StatusBadge";
 import {
@@ -172,10 +172,13 @@ export function MaterialsTable({
                   </div>
                 </TableCell>
                 <TableCell>{ownerNames.get(material.ownerId) ?? "—"}</TableCell>
-                <TableCell className="tabular-nums">
-                  {material.approvedUntil
-                    ? format(new Date(material.approvedUntil), "MMM d, yyyy")
-                    : "—"}
+                <TableCell
+                  className={cn(
+                    "tabular-nums",
+                    material.status === "expired" && "font-medium text-red-700",
+                  )}
+                >
+                  {formatDate(material.approvedUntil)}
                 </TableCell>
               </TableRow>
             );
