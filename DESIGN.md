@@ -254,7 +254,7 @@ Walkthrough to rehearse:
 Suggested, change if you prefer:
 
 - Next.js (App Router), TypeScript, shadcn/ui
-- Postgres and Java Spring Boot 
+- Postgres and Java Spring Boot and flyway
 - `react-pdf` for the rendition
 - Auth as seeded accounts, plus the demo user switcher (cookie or session)
 - Deploy on Vercel, repo on GitHub
