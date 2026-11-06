@@ -1,3 +1,6 @@
 clearpath:
   session:
     secret: test-session-secret
+
+seed:
+  autorun: false
