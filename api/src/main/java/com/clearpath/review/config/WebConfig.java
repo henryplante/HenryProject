@@ -2,7 +2,6 @@ package com.clearpath.review.config;
 
 import com.clearpath.review.auth.CurrentUserArgumentResolver;
 import com.clearpath.review.auth.CurrentUserLoader;
-import com.clearpath.review.auth.CurrentUserLoader;
 import com.clearpath.review.auth.SessionFilter;
 import com.clearpath.review.auth.SessionProperties;
 import com.clearpath.review.auth.SessionTokenService;
