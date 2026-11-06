@@ -377,22 +377,8 @@ export function createProduct(body: unknown): Product {
 export function replaceProduct(id: string, body: unknown): Product {
   const product = db.products.find((p) => p.id === id);
   if (!product) throw notFound();
-  if (productHasCycles(id)) {
-    throw new HttpError(
-      409,
-      "PRODUCT_LOCKED",
-      "Product cannot change after review started",
-    );
-  }
   Object.assign(product, parseProductInput(body, id));
   return toProduct(product);
-}
-
-function productHasCycles(productId: string) {
-  const materialIds = new Set(
-    db.materials.filter((m) => m.productId === productId).map((m) => m.id),
-  );
-  return db.cycles.some((c) => materialIds.has(c.materialId));
 }
 
 // -------------------------------------------------------------- materials

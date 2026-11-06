@@ -79,12 +79,6 @@ public class ProductService {
         Product product = productRepository
                 .findById(id)
                 .orElseThrow(() -> new ApiException(ErrorCode.NOT_FOUND, HttpStatus.NOT_FOUND, "Not found"));
-        if (reviewCycleRepository.existsByMaterial_Product_Id(id)) {
-            throw new ApiException(
-                    ErrorCode.PRODUCT_LOCKED,
-                    HttpStatus.CONFLICT,
-                    "Product cannot change after review started");
-        }
         ProductWorkflowValidator.validate(input);
         ensureNameAvailable(input.name(), id);
         validateGroupIds(input);

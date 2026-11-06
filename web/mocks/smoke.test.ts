@@ -229,7 +229,7 @@ describe("material detail", () => {
     expect(again.code).toBe("CYCLE_ALREADY_ACTIVE");
   });
 
-  it("locks the product after the first cycle", async () => {
+  it("locks a material's product after the first cycle but keeps templates editable", async () => {
     await loginAs("maya");
     const locked = await expectApiError(
       api.patchMaterial(walkthroughId, {
@@ -242,14 +242,12 @@ describe("material detail", () => {
     });
     expect(draft.productName).toBe("Credit cards");
     const seededProduct = await api.getProduct(SEED_IDS.products.mortgage);
-    const replaceLocked = await expectApiError(
-      api.replaceProduct(seededProduct.id, {
-        name: seededProduct.name,
-        approvalLifetimeDays: 10,
-        steps: seededProduct.steps,
-      }),
-    );
-    expect(replaceLocked.code).toBe("PRODUCT_LOCKED");
+    const replaced = await api.replaceProduct(seededProduct.id, {
+      name: seededProduct.name,
+      approvalLifetimeDays: 10,
+      steps: seededProduct.steps,
+    });
+    expect(replaced.approvalLifetimeDays).toBe(10);
   });
 });
 
