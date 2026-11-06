@@ -5,7 +5,7 @@ import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
 @Component
-@Profile("seed")
+@Profile({"seed", "prod-startup-seed"})
 public class SeedDatabaseReset {
 
     private final JdbcTemplate jdbc;

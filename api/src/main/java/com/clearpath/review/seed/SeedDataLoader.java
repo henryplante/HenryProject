@@ -18,7 +18,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 @Component
-@Profile("seed")
+@Profile({"seed", "prod-startup-seed"})
 public class SeedDataLoader {
 
     private static final Logger log = LoggerFactory.getLogger(SeedDataLoader.class);

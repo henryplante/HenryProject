@@ -5,6 +5,6 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
 
 @Configuration
-@Profile("seed")
+@Profile({"seed", "prod-startup-seed"})
 @EnableConfigurationProperties(SeedProperties.class)
 public class SeedConfiguration {}
