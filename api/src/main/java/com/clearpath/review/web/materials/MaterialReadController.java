@@ -5,6 +5,7 @@ import com.clearpath.review.domain.MaterialChannel;
 import com.clearpath.review.service.materials.MaterialReadService;
 import com.clearpath.review.service.materials.VersionFileContent;
 import com.clearpath.review.service.materials.MaterialStatus;
+import com.clearpath.review.service.social.LazyExpiryService;
 import com.clearpath.review.web.materials.dto.ActivityEntryDto;
 import com.clearpath.review.web.materials.dto.CommentDto;
 import com.clearpath.review.web.materials.dto.MaterialDetailDto;
@@ -26,9 +27,11 @@ import org.springframework.web.bind.annotation.RestController;
 public class MaterialReadController {
 
     private final MaterialReadService materialReadService;
+    private final LazyExpiryService lazyExpiryService;
 
-    public MaterialReadController(MaterialReadService materialReadService) {
+    public MaterialReadController(MaterialReadService materialReadService, LazyExpiryService lazyExpiryService) {
         this.materialReadService = materialReadService;
+        this.lazyExpiryService = lazyExpiryService;
     }
 
     @GetMapping("/materials")
@@ -40,6 +43,7 @@ public class MaterialReadController {
             @RequestParam(required = false) MaterialChannel channel,
             @RequestParam(required = false) Boolean owned,
             @RequestParam(required = false) Boolean favorites) {
+        lazyExpiryService.run();
         return materialReadService.listMaterials(viewer, q, productId, status, channel, owned, favorites);
     }
 
@@ -48,6 +52,7 @@ public class MaterialReadController {
             CurrentUser viewer,
             @PathVariable UUID id,
             @RequestParam(required = false) UUID versionId) {
+        lazyExpiryService.run();
         return materialReadService.getMaterial(id, versionId, viewer);
     }
 
