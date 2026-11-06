@@ -54,7 +54,7 @@ export function PdfDropzone({
         if (!disabled) pick(event.dataTransfer.files);
       }}
       className={cn(
-        "flex items-center gap-3 rounded-lg border border-dashed px-4 py-3 transition-colors",
+        "flex w-full min-w-0 items-center gap-3 overflow-hidden rounded-lg border border-dashed px-4 py-3 transition-colors",
         dragging && "border-ring bg-muted/60",
         error && "border-destructive/60",
       )}

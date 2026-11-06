@@ -44,7 +44,7 @@ export function UploadVersionDialog({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
-        className="max-h-[calc(100dvh-2rem)] overflow-y-auto"
+        className="max-h-[calc(100dvh-2rem)] overflow-x-hidden overflow-y-auto"
         onInteractOutside={(event) => event.preventDefault()}
       >
         <UploadVersionForm material={material} onClose={() => onOpenChange(false)} />
@@ -126,7 +126,7 @@ function UploadVersionForm({
   }
 
   return (
-    <form onSubmit={onSubmit} noValidate className="grid gap-5">
+    <form onSubmit={onSubmit} noValidate className="grid min-w-0 gap-5">
       <DialogHeader>
         <DialogTitle>Upload new version</DialogTitle>
         <DialogDescription>

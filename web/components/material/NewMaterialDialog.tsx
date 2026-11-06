@@ -53,7 +53,7 @@ export function NewMaterialDialog({ open, onOpenChange }: NewMaterialDialogProps
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
-        className="max-h-[calc(100dvh-2rem)] overflow-y-auto sm:max-w-lg"
+        className="max-h-[calc(100dvh-2rem)] overflow-x-hidden overflow-y-auto sm:max-w-lg"
         onInteractOutside={(event) => event.preventDefault()}
       >
         <NewMaterialForm onClose={() => onOpenChange(false)} />
@@ -177,7 +177,7 @@ function NewMaterialForm({ onClose }: { onClose: () => void }) {
   const fileError = errors.file ?? fileProblem ?? undefined;
 
   return (
-    <form onSubmit={onSubmit} noValidate className="grid gap-5">
+    <form onSubmit={onSubmit} noValidate className="grid min-w-0 gap-5">
       <DialogHeader>
         <DialogTitle>New material</DialogTitle>
         <DialogDescription>
