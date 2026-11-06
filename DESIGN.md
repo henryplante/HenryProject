@@ -13,10 +13,10 @@ The outcome to show: nobody has to know who to email, a new file sends everyone 
 In this version:
 
 - Materials with metadata and file versions
-- One linear workflow per product, edited in admin
+- One linear workflow per product, edited on the setup screen
 - Steps that require N approvals from one or more groups
 - Tasks assigned to every member of those groups
-- Task list pane, material view, library, admin
+- Task list pane, material view, library, setup
 - Bell notifications, which are a separate feed from the task list
 - Seed data that fills every state a demo needs
 
@@ -26,7 +26,7 @@ Fixed behavior, not settings:
 - A new file during an active review restarts that review at step 1.
 - The last fully approved version stays the version that is approved for use until a newer version finishes review.
 - PDF rendition only.
-- Signed-in users may upload, comment, and favorite. Assigned reviewers approve. The material owner and admins start reviews and edit the product before the first review.
+- No admin role and no other permissioning. Any signed-in user can take any action. Group membership is the only check, and it applies only to approval.
 
 Later, and easy to describe from this model: email delivery, side-by-side version compare, comment pins on the page, a claims library.
 
@@ -43,7 +43,7 @@ Later, and easy to describe from this model: email delivery, side-by-side versio
 | Task list | A pane on the main screen. A live queue computed from review state: what you can approve now, workflows you own, and steps that have not reached you yet. |
 | Notification | A bell item. A stored event (“a comment was added”, “your step opened”). Read or unread. Independent of whether a task row exists. |
 
-The material has an owner. That person is the uploader until an admin or the owner reassigns it. The owner hears about comments and stage changes through the bell. The workflow template has no separate owner.
+The material has an owner. That person is the uploader until someone changes it. The owner hears about comments and stage changes through the bell. Ownership does not grant or withhold any action. The workflow template has no separate owner.
 
 ## Statuses
 
@@ -59,9 +59,17 @@ There is no “changes requested” status. Feedback is a comment. The material 
 
 Expired is calculated when a page loads from `approvedUntil`. Nothing runs on a schedule. Obsolete is only the manual action.
 
+## Permissions
+
+There is no admin role and no permission matrix. Every signed-in user can see every material, upload, comment, favorite, start a review, edit metadata, change the owner, mark a material obsolete, and edit groups, users, products, and workflows.
+
+The one exception is approval. You can approve for a group when you belong to that group and the open step requires that group. One click counts for one group. After that group’s count is met, other members can still approve additionally from the material.
+
+A few actions are limited by state, not by who you are. The product on a material can be changed only before the first cycle starts. A review cannot start when a required group has fewer members than the count it asks for.
+
 ## Configuration
 
-Admin can edit:
+Any signed-in user can edit:
 
 - Groups (name only is enough: Legal, Compliance, Marketing)
 - Users, and which groups each user is in
@@ -88,14 +96,14 @@ When every row on the step is satisfied, that step closes and the next step assi
 
 A user who can approve for two groups on the current step gets a dialog: approve as Legal, or approve as Compliance. One click writes one approval for one group.
 
-If a required count is higher than the number of people in that group, start is refused and the message names the group. The owner fixes membership or the template, then starts again.
+If a required count is higher than the number of people in that group, start is refused and the message names the group. Anyone can fix membership or the template, then start again.
 
 Approvals already recorded stay in place while the same version is in review. Comments do not clear them and do not have to be resolved before someone approves. The way to pull a version back is to upload a new file.
 
 ### New versions
 
 - **While a cycle is running.** The new file becomes the current version, the open cycle is abandoned, and a new cycle starts at step 1 on the new file. Old comments stay on the old version. Status stays In review. If an older version was already approved for use, it stays that way.
-- **While nothing is running.** The new file becomes the current version and waits. The owner starts review when they want. An existing approved-for-use version is unchanged until the new cycle finishes.
+- **While nothing is running.** The new file becomes the current version and waits. Anyone can start the review. An existing approved-for-use version is unchanged until the new cycle finishes.
 
 The product can be changed only before the first cycle has ever started.
 
@@ -140,13 +148,13 @@ Opening an item marks it read and shows that material. Reading or clearing the b
 
 Visual style: shadcn, quiet, lots of whitespace, one primary action per screen. Standard patterns for tables, filters, dialogs, empty states, and toasts.
 
-A user switcher in the header lists the seeded people and changes who you are acting as. The demo is several roles looking at one material.
+A user switcher in the header lists the seeded people and changes who you are acting as. The demo is several people looking at one material. Switching user changes whose tasks, workflows, upcoming rows, and bell items you see. It does not unlock a different set of actions.
 
 Navigation:
 
 - **Home** — task list pane and the open material. Default.
 - **Library**
-- **Admin** — visible to admins
+- **Setup** — groups, users, and products. Every signed-in user can open it.
 
 The header also holds New, the bell, and the user switcher.
 
@@ -176,7 +184,9 @@ All materials. Search by title. Filter by product, status, channel, owned by me,
 - File
 - Start review now
 
-### Admin
+### Setup
+
+Open to every signed-in user. This is configuration, not an admin role.
 
 - Users
 - Groups and membership
@@ -202,7 +212,7 @@ Channel plus one seeded affiliate email is the affiliate-partner flavor. There i
 
 Sketch, names can change:
 
-- **User** — name, email, admin flag
+- **User** — name, email. No role flag.
 - **Group**
 - **Membership** — user, group
 - **Product** — name, approval lifetime days
@@ -226,7 +236,7 @@ The task list is not the notification table, and it is not its own table. Your t
 Seed enough that every tab of the task list pane, the bell, and every status has rows on first load:
 
 - Groups: Marketing, Legal, Compliance
-- About eight users spread across those groups, one of them an admin who is also in Marketing
+- About eight users spread across those groups, including one person in both Legal and Compliance so the approve-as dialog has a case
 - Three products with the step shapes in the configuration section
 - Materials: a draft, one sitting on step 1 a single approval short and overdue, one on step 2, one approved, one expiring within 30 days, one obsolete, and one affiliate email that is in review while an older version is still approved for use
 
@@ -256,7 +266,7 @@ Build in this order so a clickable demo exists early:
 3. Approve, quorum, and step advance
 4. Upload and restart
 5. Library search, filters, favorites
-6. Admin editors
+6. Setup editors for groups, users, and products
 7. Activity log, and the bell as its own feed
 8. Overdue styling, expiry badge, empty states
 
@@ -267,5 +277,5 @@ Build in this order so a clickable demo exists early:
 - Comments are the feedback loop. A new file is what restarts review. The status during all of that is In review.
 - The last approved file stays approved for use while a newer version is in review.
 - The cycle stores its own copy of the steps from the moment it started.
-- PDF only. Anyone signed in may upload and comment. Only assignees approve.
+- PDF only. Any signed-in user can take any action except approval. Group membership is the only permission, and it decides who can approve for that group.
 - The task list pane is the live queue. The bell is a separate in-app event feed. Reading a bell item does not finish a task.
