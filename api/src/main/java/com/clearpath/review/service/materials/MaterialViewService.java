@@ -210,16 +210,14 @@ public class MaterialViewService {
     private Optional<String> findStartReviewGroupTooSmall(Material material) {
         List<WorkflowStep> steps =
                 workflowStepRepository.findByProductIdOrderByPositionAsc(material.getProduct().getId());
-        if (steps.isEmpty()) {
-            return Optional.empty();
-        }
-        WorkflowStep firstStep = steps.getFirst();
-        List<StepRequirement> requirements = stepRequirementRepository.findByStepId(firstStep.getId());
-        for (StepRequirement requirement : requirements) {
-            UUID groupId = requirement.getGroup().getId();
-            long memberCount = membershipRepository.findByIdGroupId(groupId).size();
-            if (memberCount < requirement.getApprovalsRequired()) {
-                return Optional.of(requirement.getGroup().getName());
+        for (WorkflowStep step : steps) {
+            List<StepRequirement> requirements = stepRequirementRepository.findByStepId(step.getId());
+            for (StepRequirement requirement : requirements) {
+                UUID groupId = requirement.getGroup().getId();
+                long memberCount = membershipRepository.findByIdGroupId(groupId).size();
+                if (memberCount < requirement.getApprovalsRequired()) {
+                    return Optional.of(requirement.getGroup().getName());
+                }
             }
         }
         return Optional.empty();
