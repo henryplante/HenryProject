@@ -1,10 +1,8 @@
 import type { ReactNode } from "react";
-import { CalendarClock } from "lucide-react";
 import type { MaterialDetail } from "@/lib/api/types";
-import { Badge } from "@/components/ui/badge";
+import { ExpiryBadge } from "@/components/status-badge";
 import {
   expiringSoonDays,
-  expiringSoonLabel,
   reviewStateLine,
   selectedVersionStatus,
 } from "./model";
@@ -29,36 +27,30 @@ export function MaterialBanner({
   return (
     <header
       data-slot="material-banner"
-      className="flex flex-wrap items-start justify-between gap-x-6 gap-y-3 border-b px-6 py-4"
+      className="flex min-h-[5.5rem] items-start justify-between gap-x-6 gap-y-3 border-b px-6 py-4"
     >
-      <div className="min-w-0 space-y-1.5">
-        <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
-          <h1 className="truncate text-lg font-semibold tracking-tight">
-            {material.title}
-          </h1>
+      <div className="min-w-0 flex-1 space-y-1.5">
+        <h1
+          title={material.title}
+          className="line-clamp-2 text-lg leading-snug font-semibold tracking-tight"
+        >
+          {material.title}
+        </h1>
+        <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-muted-foreground">
           <span data-slot="banner-status" className="inline-flex">
             <StatusBadge status={status} />
           </span>
-          {soon !== null ? (
-            <Badge
-              variant="secondary"
-              data-slot="expiring-soon"
-              className="bg-amber-50 text-amber-700"
-            >
-              <CalendarClock />
-              {expiringSoonLabel(soon)}
-            </Badge>
-          ) : null}
-        </div>
-        <p className="text-sm text-muted-foreground">
-          {material.productName}
-          <span aria-hidden> · </span>
-          <span data-slot="material-state-line">
-            {reviewStateLine(material, status)}
+          {soon !== null ? <ExpiryBadge days={soon} /> : null}
+          <span>
+            {material.productName}
+            <span aria-hidden> · </span>
+            <span data-slot="material-state-line">
+              {reviewStateLine(material, status)}
+            </span>
           </span>
-        </p>
+        </div>
       </div>
-      <div className="flex flex-wrap items-center gap-2">
+      <div className="flex shrink-0 items-center justify-end gap-2">
         {versionControls}
         {actions}
         {trailing}

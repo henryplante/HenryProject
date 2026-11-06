@@ -1,3 +1,10 @@
+import {
+  EXPIRING_SOON_DAYS,
+  STATUS_LABELS,
+  daysUntil as calendarDaysUntil,
+  expiringSoonDaysFor,
+  expiringSoonLabel,
+} from "@/lib/status";
 import type {
   MaterialChannel,
   MaterialFilters,
@@ -20,13 +27,7 @@ export const CHANNELS: readonly MaterialChannel[] = [
   "social",
 ];
 
-export const STATUS_LABELS: Record<MaterialStatus, string> = {
-  draft: "Draft",
-  in_review: "In review",
-  approved: "Approved",
-  expired: "Expired",
-  obsolete: "Obsolete",
-};
+export { EXPIRING_SOON_DAYS, STATUS_LABELS };
 
 export const CHANNEL_LABELS: Record<MaterialChannel, string> = {
   email: "Email",
@@ -34,10 +35,6 @@ export const CHANNEL_LABELS: Record<MaterialChannel, string> = {
   affiliate: "Affiliate",
   social: "Social",
 };
-
-export const EXPIRING_SOON_DAYS = 30;
-
-const DAY_MS = 24 * 60 * 60 * 1000;
 
 type ParamsLike = Pick<URLSearchParams, "get">;
 
@@ -84,21 +81,17 @@ export function hasActiveFilters(filters: MaterialFilters) {
 }
 
 export function daysUntil(isoDate: string, now: number = Date.now()) {
-  return Math.ceil((new Date(isoDate).getTime() - now) / DAY_MS);
+  return calendarDaysUntil(isoDate, new Date(now));
 }
 
 export function expiringInDays(
   material: Pick<MaterialSummary, "status" | "approvedUntil">,
   now: number = Date.now(),
 ): number | null {
-  if (material.status !== "approved" || !material.approvedUntil) return null;
-  const days = daysUntil(material.approvedUntil, now);
-  return days >= 1 && days <= EXPIRING_SOON_DAYS ? days : null;
+  return expiringSoonDaysFor(material.status, material.approvedUntil, new Date(now));
 }
 
-export function expiringLabel(days: number) {
-  return `Expires in ${days} ${days === 1 ? "day" : "days"}`;
-}
+export const expiringLabel = expiringSoonLabel;
 
 export type SortKey = "title" | "status";
 export type SortDirection = "asc" | "desc";

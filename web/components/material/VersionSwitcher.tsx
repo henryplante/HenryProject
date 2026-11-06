@@ -46,7 +46,6 @@ export function VersionSwitcher({
           data-slot="version-switcher"
         >
           <span className="font-medium">v{selected.number}</span>
-          <StatusBadge status={statusOf(selected)} />
           <ChevronDown className="text-muted-foreground" aria-hidden />
         </Button>
       </DropdownMenuTrigger>

@@ -81,9 +81,9 @@ describe("filtersToSearchParams", () => {
 });
 
 describe("expiry helpers", () => {
-  it("rounds partial days up", () => {
+  it("counts calendar days", () => {
     expect(daysUntil(inDays(20), NOW)).toBe(20);
-    expect(daysUntil(new Date(NOW + 3_600_000).toISOString(), NOW)).toBe(1);
+    expect(daysUntil(inDays(1), NOW)).toBe(1);
   });
 
   it("flags approved materials within 30 days only", () => {
@@ -100,6 +100,7 @@ describe("expiry helpers", () => {
   });
 
   it("pluralizes the label", () => {
+    expect(expiringLabel(0)).toBe("Expires today");
     expect(expiringLabel(1)).toBe("Expires in 1 day");
     expect(expiringLabel(20)).toBe("Expires in 20 days");
   });
