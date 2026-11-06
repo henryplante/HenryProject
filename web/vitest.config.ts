@@ -7,7 +7,11 @@ export default defineConfig({
   },
   test: {
     environment: "node",
-    include: ["lib/**/*.test.ts", "mocks/**/*.test.ts", "components/**/*.test.ts"],
+    include: [
+      "lib/**/*.test.ts",
+      "mocks/**/*.test.ts",
+      "components/**/*.test.ts",
+    ],
     setupFiles: ["./mocks/test-setup.ts"],
   },
 });
