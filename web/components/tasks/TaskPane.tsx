@@ -1,14 +1,21 @@
 "use client";
 
 import { useState } from "react";
-import { AlertCircle } from "lucide-react";
+import { CircleCheck, FileClock, Hourglass } from "lucide-react";
 import { EmptyState } from "@/components/empty-state";
+import { ErrorState } from "@/components/error-state";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useTaskCounts, useTasks, type TaskTab } from "@/lib/api";
 import { EMPTY_COPY, TAB_LABELS, TAB_ORDER } from "./format";
 import { TaskRowItem, TaskRowSkeletons } from "./TaskRowItem";
+
+const EMPTY_ICONS = {
+  mine: CircleCheck,
+  workflows: FileClock,
+  upcoming: Hourglass,
+} as const;
 
 export type TaskPaneProps = {
   selectedMaterialId?: string;
@@ -39,7 +46,9 @@ export function TaskPane({ selectedMaterialId }: TaskPaneProps) {
                     >
                       {count}
                     </Badge>
-                  ) : null}
+                  ) : (
+                    <Skeleton className="h-4 w-4 rounded-full" />
+                  )}
                 </TabsTrigger>
               );
             })}
@@ -65,20 +74,12 @@ function TaskList({
   if (tasks.data === undefined) {
     if (tasks.isError) {
       return (
-        <EmptyState
-          icon={<AlertCircle className="size-6" aria-hidden="true" />}
+        <ErrorState
+          size="sm"
           title="Could not load your tasks"
           description="Something went wrong while fetching this list."
-          action={
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => tasks.refetch()}
-              disabled={tasks.isFetching}
-            >
-              {tasks.isFetching ? "Retrying…" : "Try again"}
-            </Button>
-          }
+          onRetry={() => tasks.refetch()}
+          retrying={tasks.isFetching}
         />
       );
     }
@@ -91,7 +92,15 @@ function TaskList({
 
   if (tasks.data.length === 0) {
     const copy = EMPTY_COPY[tab];
-    return <EmptyState title={copy.title} description={copy.description} />;
+    const Icon = EMPTY_ICONS[tab];
+    return (
+      <EmptyState
+        size="sm"
+        icon={<Icon className="size-5" />}
+        title={copy.title}
+        description={copy.description}
+      />
+    );
   }
 
   return (
