@@ -22,7 +22,7 @@ test.describe("material view", () => {
       "In review",
     );
     await expect(banner.locator('[data-slot="material-state-line"]')).toHaveText(
-      "In review — Step 1 Legal 0/2",
+      "Step 1 of 2 · Legal 0/2",
     );
 
     const stepper = page.locator('[data-slot="review-stepper"]');

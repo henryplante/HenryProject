@@ -2,7 +2,9 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { AlertCircle, Bell, BellOff } from "lucide-react";
+import { Bell, BellOff } from "lucide-react";
+import { EmptyState } from "@/components/empty-state";
+import { ErrorState } from "@/components/error-state";
 import { Button } from "@/components/ui/button";
 import {
   Popover,
@@ -128,32 +130,23 @@ function BellBody({
   }
   if (isError) {
     return (
-      <div className="flex flex-col items-center gap-3 px-6 py-10 text-center">
-        <AlertCircle
-          className="size-5 text-muted-foreground"
-          aria-hidden="true"
-        />
-        <p className="text-sm">Could not load notifications</p>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={onRetry}
-          disabled={isRetrying}
-        >
-          {isRetrying ? "Retrying…" : "Try again"}
-        </Button>
-      </div>
+      <ErrorState
+        size="sm"
+        title="Could not load notifications"
+        description="Something went wrong while fetching your notifications."
+        onRetry={onRetry}
+        retrying={isRetrying}
+      />
     );
   }
   if (items.length === 0) {
     return (
-      <div className="flex flex-col items-center gap-2 px-6 py-10 text-center">
-        <BellOff className="size-5 text-muted-foreground" aria-hidden="true" />
-        <p className="text-sm font-medium">You are all caught up</p>
-        <p className="text-xs text-muted-foreground">
-          New activity on your materials will show up here.
-        </p>
-      </div>
+      <EmptyState
+        size="sm"
+        icon={<BellOff className="size-5" />}
+        title="You are all caught up"
+        description="New activity on your materials will show up here."
+      />
     );
   }
   return (

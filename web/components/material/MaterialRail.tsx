@@ -8,17 +8,21 @@ import {
   useVersionComments,
 } from "@/lib/api";
 import type { MaterialDetail } from "@/lib/api/types";
+import { EmptyState } from "@/components/empty-state";
+import { ErrorState } from "@/components/error-state";
+import { StatusBadge } from "@/components/status-badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { CommentComposer } from "./CommentComposer";
+import { MessageSquare, History } from "lucide-react";
 import {
-  STATUS_LABELS,
   approvedOnFor,
   approvedVersionNumber,
   approvedUntilFor,
   formatDate,
   humanizeActivity,
   selectedVersionOf,
+  selectedVersionStatus,
   sortActivityNewestFirst,
 } from "./model";
 
@@ -123,6 +127,7 @@ export function DetailsTab({ material }: { material: MaterialDetail }) {
   const approvedOn = approvedOnFor(material, activity.data);
   const approvedUntil = approvedUntilFor(material);
   const approvedNumber = approvedVersionNumber(material);
+  const status = selectedVersionStatus(material);
   const versionNote =
     approvedNumber !== undefined && approvedNumber !== material.currentVersionNumber ? (
       <span className="text-muted-foreground"> · v{approvedNumber}</span>
@@ -139,7 +144,9 @@ export function DetailsTab({ material }: { material: MaterialDetail }) {
       <Field label="Owner">
         {owner ? owner.name : users.isLoading ? <Skeleton className="h-4 w-24" /> : "—"}
       </Field>
-      <Field label="Status">{STATUS_LABELS[material.status]}</Field>
+      <Field label="Status">
+        <StatusBadge kind={status.kind} withDate={false} />
+      </Field>
       <Field label="Current version">v{material.currentVersionNumber}</Field>
       <Field label="Approved on">
         {approvedUntil && activity.isLoading ? (
@@ -210,13 +217,19 @@ export function CommentsTab({
         {comments.isLoading ? (
           <ListSkeleton />
         ) : comments.isError ? (
-          <p role="alert" className="p-4 text-sm text-muted-foreground">
-            Comments could not be loaded.
-          </p>
+          <ErrorState
+            size="sm"
+            title="Comments could not be loaded"
+            onRetry={() => comments.refetch()}
+            retrying={comments.isFetching}
+          />
         ) : !comments.data || comments.data.length === 0 ? (
-          <p className="p-4 text-sm text-muted-foreground">
-            No comments on {label} yet.
-          </p>
+          <EmptyState
+            size="sm"
+            icon={<MessageSquare className="size-5" />}
+            title={`No comments on ${label} yet`}
+            description="Feedback is a comment. Add one below."
+          />
         ) : (
           <ul className="divide-y">
             {comments.data.map((comment) => (
@@ -264,14 +277,24 @@ export function ActivityTab({ materialId }: { materialId: string }) {
   if (activity.isLoading) return <ListSkeleton />;
   if (activity.isError) {
     return (
-      <p role="alert" className="p-4 text-sm text-muted-foreground">
-        Activity could not be loaded.
-      </p>
+      <ErrorState
+        size="sm"
+        title="Activity could not be loaded"
+        onRetry={() => activity.refetch()}
+        retrying={activity.isFetching}
+      />
     );
   }
   const entries = sortActivityNewestFirst(activity.data ?? []);
   if (entries.length === 0) {
-    return <p className="p-4 text-sm text-muted-foreground">No activity yet.</p>;
+    return (
+      <EmptyState
+        size="sm"
+        icon={<History className="size-5" />}
+        title="No activity yet"
+        description="Uploads, reviews and approvals will be logged here."
+      />
+    );
   }
 
   return (

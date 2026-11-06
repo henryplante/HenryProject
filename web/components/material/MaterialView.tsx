@@ -2,10 +2,12 @@
 
 import { useCallback, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { PanelRightClose, PanelRightOpen } from "lucide-react";
+import Link from "next/link";
+import { FileQuestion, FileText, PanelRightClose, PanelRightOpen } from "lucide-react";
 import { isApiError, useMaterial, versionFileUrl } from "@/lib/api";
 import type { MaterialDetail } from "@/lib/api/types";
 import { EmptyState } from "@/components/empty-state";
+import { ErrorState } from "@/components/error-state";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { MaterialActions } from "./MaterialActions";
@@ -30,6 +32,7 @@ export function MaterialView({ materialId, versionId }: MaterialViewProps) {
     return (
       <EmptyState
         className="h-full"
+        icon={<FileText className="size-6" />}
         title="Select a material"
         description="Pick a task on the left to open its material."
       />
@@ -79,22 +82,27 @@ function LoadedMaterialView({
       const notFound = isApiError(query.error) && query.error.status === 404;
       return (
         <div data-slot="material-view" data-state={notFound ? "not-found" : "error"} className={ROOT_CLASS}>
-          <EmptyState
-            className="h-full"
-            title={notFound ? "Material not found" : "Could not load this material"}
-            description={
-              notFound
-                ? "It may have been removed, or the link is out of date."
-                : "Something went wrong while loading. Please try again."
-            }
-            action={
-              notFound ? undefined : (
-                <Button variant="outline" size="sm" onClick={() => query.refetch()}>
-                  Try again
+          {notFound ? (
+            <EmptyState
+              className="h-full"
+              icon={<FileQuestion className="size-6" />}
+              title="Material not found"
+              description="It may have been removed, or the link is out of date."
+              action={
+                <Button variant="outline" size="sm" asChild>
+                  <Link href="/library">Go to library</Link>
                 </Button>
-              )
-            }
-          />
+              }
+            />
+          ) : (
+            <ErrorState
+              className="h-full"
+              title="Could not load this material"
+              description="Something went wrong while loading. Please try again."
+              onRetry={() => query.refetch()}
+              retrying={query.isFetching}
+            />
+          )}
         </div>
       );
     }
@@ -184,27 +192,47 @@ export function MaterialViewSkeleton() {
     <div
       data-slot="material-view"
       data-state="loading"
+      role="status"
+      aria-label="Loading material"
       aria-busy="true"
       className={ROOT_CLASS}
     >
-      <div className="space-y-2 border-b px-6 py-4">
-        <Skeleton className="h-6 w-80" />
-        <Skeleton className="h-4 w-56" />
+      <div className="flex min-h-[5.5rem] items-start justify-between gap-6 border-b px-6 py-4">
+        <div className="min-w-0 flex-1 space-y-2.5">
+          <Skeleton className="h-6 w-80 max-w-full" />
+          <Skeleton className="h-5 w-64 max-w-full" />
+        </div>
+        <div className="flex shrink-0 items-center gap-2">
+          <Skeleton className="h-8 w-16" />
+          <Skeleton className="h-8 w-36" />
+          <Skeleton className="h-8 w-24" />
+          <Skeleton className="size-8" />
+        </div>
       </div>
       <div className="flex min-h-0 flex-1">
         <div className="flex min-w-0 flex-1 flex-col">
-          <div className="border-b px-6 py-4">
-            <Skeleton className="h-10 w-96" />
+          <div className="flex h-[4.75rem] shrink-0 items-center gap-6 border-b px-6">
+            <Skeleton className="h-9 w-36" />
+            <Skeleton className="h-9 w-36" />
           </div>
-          <div className="flex-1 bg-muted/40 p-6">
+          <div className="flex h-11 shrink-0 items-center justify-between border-b px-4">
+            <Skeleton className="h-4 w-28" />
+            <Skeleton className="h-4 w-24" />
+          </div>
+          <div className="min-h-0 flex-1 overflow-hidden bg-muted/40 px-6 py-6">
             <Skeleton className="mx-auto aspect-[8.5/11] w-full max-w-[1000px]" />
           </div>
         </div>
         <div className="hidden w-80 shrink-0 space-y-3 border-l p-4 md:block">
           <Skeleton className="h-8 w-full" />
-          <Skeleton className="h-4 w-full" />
-          <Skeleton className="h-4 w-3/4" />
-          <Skeleton className="h-4 w-5/6" />
+          <div className="space-y-3 pt-2">
+            {[0, 1, 2, 3, 4, 5].map((i) => (
+              <div key={i} className="grid grid-cols-[6.5rem_minmax(0,1fr)] gap-3">
+                <Skeleton className="h-4 w-16" />
+                <Skeleton className="h-4 w-full" />
+              </div>
+            ))}
+          </div>
         </div>
       </div>
     </div>

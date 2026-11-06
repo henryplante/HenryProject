@@ -32,7 +32,7 @@ test("James (Legal) approves the overdue affiliate email from the task list", as
 
   const row = page.getByRole("link", { name: new RegExp(AFFILIATE) });
   await expect(row).toBeVisible();
-  await expect(stepLine(page)).toHaveText("In review — Step 1 Legal 0/2");
+  await expect(stepLine(page)).toHaveText("Step 1 of 2 · Legal 0/2");
 
   const approve = banner(page).getByRole("button", { name: "Approve" });
   await expect(approve).toBeVisible();
@@ -43,7 +43,7 @@ test("James (Legal) approves the overdue affiliate email from the task list", as
 
   await expect(toast(page).filter({ hasText: "Approved as Legal" })).toBeVisible();
   await expect(toast(page).filter({ hasText: /already approved/i })).toHaveCount(0);
-  await expect(stepLine(page)).toHaveText("In review — Step 1 Legal 1/2");
+  await expect(stepLine(page)).toHaveText("Step 1 of 2 · Legal 1/2");
   await expect(
     page.locator('[data-slot="review-stepper"] [data-state="active"]'),
   ).toContainText("Legal 1/2");
@@ -120,7 +120,7 @@ test("Start review on the seeded draft", async ({ page }) => {
   await expect(
     page.locator('[data-slot="banner-status"] [data-status="in_review"]'),
   ).toBeVisible();
-  await expect(stepLine(page)).toHaveText("In review — Step 1 Legal 0/1");
+  await expect(stepLine(page)).toHaveText("Step 1 of 2 · Legal 0/1");
   await expect(banner(page).getByRole("button", { name: "Start review" })).toHaveCount(0);
   await expect(banner(page).getByRole("button", { name: "Approve" })).toHaveCount(0);
   await page.screenshot({ path: `${SHOTS}/draft-started.png` });

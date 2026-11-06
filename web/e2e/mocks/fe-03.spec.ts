@@ -13,7 +13,7 @@ async function loginAs(page: Page, email: string) {
 test("unauthenticated visitors are sent to /login", async ({ page }) => {
   for (const route of ["/", "/library", "/setup"]) {
     await page.goto(route);
-    await expect(page).toHaveURL(/\/login$/);
+    await expect(page).toHaveURL(/\/login(\?next=.*)?$/);
     await expect(page.getByRole("button", { name: "Sign in" })).toBeVisible();
   }
   await page.screenshot({ path: `${SHOTS}/login.png` });
@@ -99,7 +99,7 @@ test("login, switch user refetches tasks, stay on route, log out", async ({
   await page.getByRole("menuitem", { name: "Log out" }).click();
   await expect(page).toHaveURL(/\/login$/);
   await page.goto("/setup");
-  await expect(page).toHaveURL(/\/login$/);
+  await expect(page).toHaveURL(/\/login(\?next=.*)?$/);
 });
 
 test("authenticated users on /login are sent to /", async ({ page }) => {
