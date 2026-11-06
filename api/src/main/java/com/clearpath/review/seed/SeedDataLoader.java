@@ -503,7 +503,12 @@ public class SeedDataLoader {
         activity(materialId, owner, "review_started", started, detail("version", 1));
         activity(materialId, r.user("james.rivera"), "approved", r.now.minus(16, ChronoUnit.DAYS), detail("step", 1));
         activity(materialId, owner, "step_completed", r.now.minus(10, ChronoUnit.DAYS), detail("step", 1));
-        notification(owner, materialId, r.user("alex.kim"), "step_opened", r.now.minus(10, ChronoUnit.DAYS), null, detail("step", 2));
+        Instant step2Opened = r.now.minus(10, ChronoUnit.DAYS);
+        UUID sofia = r.user("sofia.patel");
+        notification(r.user("alex.kim"), materialId, sofia, "step_opened", step2Opened, r.now.minus(9, ChronoUnit.DAYS), detail("step", 2));
+        notification(r.user("jordan.lee"), materialId, sofia, "step_opened", step2Opened, null, detail("step", 2));
+        notification(r.user("riley.davis"), materialId, sofia, "step_opened", step2Opened, null, detail("step", 2));
+        notification(owner, materialId, sofia, "step_completed", step2Opened, null, detail("step", 1));
     }
 
     private void seedOneShortOverdue(SeedRefs r) {
@@ -545,7 +550,21 @@ public class SeedDataLoader {
                                 List.of(req(r, SeedConstants.GROUP_COMPLIANCE, 1)))),
                 List.of(review(r.user("james.rivera"), 1, r.group(SeedConstants.GROUP_LEGAL), true, stepOpened)));
         activity(materialId, owner, "review_started", stepOpened.minus(1, ChronoUnit.DAYS), detail("version", 1));
+        UUID james = r.user("james.rivera");
+        notification(james, materialId, owner, "step_opened", stepOpened, r.now.minus(3, ChronoUnit.DAYS), detail("step", 1));
         notification(r.user("sofia.patel"), materialId, owner, "step_opened", stepOpened, r.now.minus(2, ChronoUnit.DAYS), detail("step", 1));
+        notification(r.user("riley.davis"), materialId, owner, "step_opened", stepOpened, null, detail("step", 1));
+        notification(owner, materialId, james, "approved", stepOpened, null, detail("step", 1, "groupName", "Legal"));
+        Instant commentedAt = r.now.minus(4, ChronoUnit.DAYS).plus(2, ChronoUnit.HOURS);
+        jdbc.update(
+                "INSERT INTO comment (id, version_id, author_id, body, created_at) VALUES (?, ?, ?, ?, ?)",
+                UUID.randomUUID(),
+                v1,
+                james,
+                "Approved on my side. Second Legal approval still needed.",
+                ts(commentedAt));
+        activity(materialId, james, "comment_added", commentedAt, detail("version", 1));
+        notification(owner, materialId, james, "comment_added", commentedAt, r.now.minus(3, ChronoUnit.DAYS), detail("version", 1));
     }
 
     private void seedWalkthroughMaterial(SeedRefs r) {
@@ -648,6 +667,7 @@ public class SeedDataLoader {
         notification(owner, materialId, commentAuthor, "comment_added", r.now.minus(4, ChronoUnit.DAYS), null, detail("version", 2));
         notification(r.user("james.rivera"), materialId, owner, "step_opened", stepOpened, null, detail("step", 1));
         notification(r.user("sofia.patel"), materialId, owner, "step_opened", stepOpened, r.now.minus(1, ChronoUnit.DAYS), detail("step", 1));
+        notification(r.user("riley.davis"), materialId, owner, "step_opened", stepOpened, null, detail("step", 1));
     }
 
     private void seedCreditCardDualShort(SeedRefs r) {
@@ -693,6 +713,10 @@ public class SeedDataLoader {
                 List.of());
         activity(materialId, owner, "review_started", started, detail("version", 1));
         notification(r.user("riley.davis"), materialId, owner, "step_opened", stepOpened, null, detail("step", 1));
+        notification(r.user("james.rivera"), materialId, owner, "step_opened", stepOpened, r.now.minus(2, ChronoUnit.DAYS), detail("step", 1));
+        notification(r.user("sofia.patel"), materialId, owner, "step_opened", stepOpened, null, detail("step", 1));
+        notification(r.user("alex.kim"), materialId, owner, "step_opened", stepOpened, null, detail("step", 1));
+        notification(r.user("jordan.lee"), materialId, owner, "step_opened", stepOpened, r.now.minus(1, ChronoUnit.DAYS), detail("step", 1));
     }
 
     private void seedFavorites(SeedRefs r) {
@@ -729,14 +753,6 @@ public class SeedDataLoader {
                 r.now.minus(56, ChronoUnit.DAYS),
                 null,
                 detail("step", 1));
-        notification(
-                r.user("morgan.taylor"),
-                titleToMaterialId(r, "Rate sheet Q1 email"),
-                r.user("sofia.patel"),
-                "step_completed",
-                r.now.minus(10, ChronoUnit.DAYS),
-                null,
-                detail("step", 1));
     }
 
     private void notification(
@@ -748,12 +764,25 @@ public class SeedDataLoader {
             Instant readAt,
             String detailJson) {
         jdbc.update(
-                "INSERT INTO notification (id, user_id, material_id, actor_id, kind, detail, read_at, created_at) VALUES (?, ?, ?, ?, ?, ?::jsonb, ?, ?)",
+                """
+                INSERT INTO notification (id, user_id, material_id, actor_id, kind, detail, read_at, created_at)
+                VALUES (?, ?, ?, ?, ?, jsonb_strip_nulls(
+                    ?::jsonb || jsonb_build_object(
+                        'actorName', (SELECT name FROM app_user WHERE id = ?),
+                        'stepName', (
+                            SELECT cs.name FROM cycle_step cs
+                            JOIN review_cycle rc ON rc.id = cs.cycle_id
+                            WHERE rc.material_id = ? AND cs.position = (?::jsonb ->> 'step')::int
+                            ORDER BY rc.started_at DESC LIMIT 1))), ?, ?)
+                """,
                 UUID.randomUUID(),
                 userId,
                 materialId,
                 actorId,
                 kind,
+                detailJson,
+                actorId,
+                materialId,
                 detailJson,
                 ts(readAt),
                 ts(createdAt));
@@ -772,6 +801,14 @@ public class SeedDataLoader {
 
     private String detail(String key, Object value) {
         return "{\"" + key + "\": " + (value instanceof Number n ? n.toString() : "\"" + value + "\"") + "}";
+    }
+
+    private String detail(String key, Object value, String key2, Object value2) {
+        return "{\"" + key + "\": " + jsonValue(value) + ", \"" + key2 + "\": " + jsonValue(value2) + "}";
+    }
+
+    private String jsonValue(Object value) {
+        return value instanceof Number n ? n.toString() : "\"" + value + "\"";
     }
 
     private List<CycleStepSeed> cardSteps(SeedRefs r, Instant approvedAt) {

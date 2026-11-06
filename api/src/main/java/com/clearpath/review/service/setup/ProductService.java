@@ -95,6 +95,7 @@ public class ProductService {
             stepRequirementRepository.deleteAll(stepRequirementRepository.findByStepId(step.getId()));
         }
         workflowStepRepository.deleteAll(steps);
+        workflowStepRepository.flush();
     }
 
     private void persistWorkflow(Product product, ProductInputDto input) {
@@ -152,10 +153,10 @@ public class ProductService {
     }
 
     private void ensureNameAvailable(String name, UUID exceptProductId) {
-        productRepository.findByName(name).ifPresent(existing -> {
-            if (exceptProductId == null || !existing.getId().equals(exceptProductId)) {
-                throw new ApiException(ErrorCode.VALIDATION, HttpStatus.BAD_REQUEST, "Product name already in use");
-            }
-        });
+        boolean taken = productRepository.findAllByNameIgnoreCase(name).stream()
+                .anyMatch(existing -> exceptProductId == null || !existing.getId().equals(exceptProductId));
+        if (taken) {
+            throw new ApiException(ErrorCode.VALIDATION, HttpStatus.BAD_REQUEST, "Product name already in use");
+        }
     }
 }

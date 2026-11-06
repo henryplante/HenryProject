@@ -1,5 +1,6 @@
 package com.clearpath.review.auth;
 
+import com.clearpath.review.web.error.ApiException;
 import com.clearpath.review.web.error.ErrorCode;
 import com.clearpath.review.web.error.ErrorResponse;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -54,7 +55,13 @@ public class SessionFilter extends OncePerRequestFilter {
             writeUnauthorized(response);
             return;
         }
-        CurrentUser user = currentUserLoader.load(payload.userId());
+        CurrentUser user;
+        try {
+            user = currentUserLoader.load(payload.userId());
+        } catch (ApiException ex) {
+            writeUnauthorized(response);
+            return;
+        }
         request.setAttribute(CURRENT_USER_ATTRIBUTE, user);
         filterChain.doFilter(request, response);
     }

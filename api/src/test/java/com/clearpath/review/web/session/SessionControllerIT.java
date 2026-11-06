@@ -122,4 +122,24 @@ class SessionControllerIT extends AbstractPostgresIT {
         String setCookie = login.getResponse().getHeader("Set-Cookie");
         assertThat(setCookie).containsIgnoringCase("SameSite=Lax");
     }
+
+    @Test
+    void cookieOfDeletedUserIsUnauthorizedNotServerError() throws Exception {
+        MvcResult login = mockMvc.perform(post("/api/session/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"email\":\"" + userEmail + "\",\"password\":\"demo-demo\"}"))
+                .andExpect(status().isOk())
+                .andReturn();
+        Cookie sessionCookie = login.getResponse().getCookie("clearpath_session");
+        jdbcTemplate.update("DELETE FROM app_user WHERE email = ?", userEmail);
+
+        mockMvc.perform(get("/api/materials").cookie(sessionCookie))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.error.code").value("UNAUTHORIZED"));
+        mockMvc.perform(post("/api/session/logout").cookie(sessionCookie))
+                .andExpect(status().isUnauthorized());
+        mockMvc.perform(get("/api/session").cookie(sessionCookie))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.user", nullValue()));
+    }
 }

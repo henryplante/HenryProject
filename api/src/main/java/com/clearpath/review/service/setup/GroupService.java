@@ -64,10 +64,10 @@ public class GroupService {
     }
 
     private void ensureNameAvailable(String name, UUID exceptGroupId) {
-        userGroupRepository.findByName(name).ifPresent(existing -> {
-            if (exceptGroupId == null || !existing.getId().equals(exceptGroupId)) {
-                throw new ApiException(ErrorCode.VALIDATION, HttpStatus.BAD_REQUEST, "Group name already in use");
-            }
-        });
+        boolean taken = userGroupRepository.findAllByNameIgnoreCase(name).stream()
+                .anyMatch(existing -> exceptGroupId == null || !existing.getId().equals(exceptGroupId));
+        if (taken) {
+            throw new ApiException(ErrorCode.VALIDATION, HttpStatus.BAD_REQUEST, "Group name already in use");
+        }
     }
 }
