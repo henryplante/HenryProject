@@ -11,7 +11,8 @@ Spring Boot 3 backend for ClearPath Review.
 
 Copy `.env.example` and export variables, or set:
 
-- `SPRING_DATASOURCE_URL`, `SPRING_DATASOURCE_USERNAME`, `SPRING_DATASOURCE_PASSWORD`
+- `SPRING_DATASOURCE_URL`, `SPRING_DATASOURCE_USERNAME`, `SPRING_DATASOURCE_PASSWORD` (local Postgres)
+- **Neon:** from repo root run `neon deploy` (writes `.env.local`). Export `DATABASE_URL` (pooled, runtime) and `DATABASE_URL_UNPOOLED` (direct, Flyway). Or run `npm run dev:api` from the repo root (`neon-env` injects vars).
 - `SESSION_SECRET` (HMAC key for the `clearpath_session` cookie)
 - `SERVER_PORT` (default `8080`)
 

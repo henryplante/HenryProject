@@ -1,0 +1,12 @@
+{
+  "scripts": {
+    "build": "npm run build --prefix web",
+    "dev:web": "npm run dev --prefix web",
+    "dev:api": "npx neon-env run -- bash -c 'cd api && ./gradlew --no-daemon bootRun --args=\"--spring.profiles.active=seed\"'",
+    "dev:web:neon": "npx neon-env run -- bash -c 'cd web && API_URL=http://localhost:8080 npm run dev'"
+  },
+  "dependencies": {
+    "@neon/config": "^1.11.3",
+    "@neon/env": "^1.6.15"
+  }
+}

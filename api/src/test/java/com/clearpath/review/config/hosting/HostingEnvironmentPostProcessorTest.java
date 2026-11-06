@@ -26,6 +26,25 @@ class HostingEnvironmentPostProcessorTest {
     }
 
     @Test
+    void mapsUnpooledDatabaseUrlToFlyway() {
+        MockEnvironment environment = new MockEnvironment();
+        HostingEnvironmentPostProcessor processor = processor(Map.of(
+                "DATABASE_URL",
+                "postgres://app:app@pooler.example.com:5432/neondb?sslmode=require",
+                "DATABASE_URL_UNPOOLED",
+                "postgres://app:app@direct.example.com:5432/neondb?sslmode=require"));
+
+        processor.postProcessEnvironment(environment, new SpringApplication());
+
+        assertThat(environment.getProperty("spring.datasource.url"))
+                .isEqualTo("jdbc:postgresql://pooler.example.com:5432/neondb?sslmode=require");
+        assertThat(environment.getProperty("spring.flyway.url"))
+                .isEqualTo("jdbc:postgresql://direct.example.com:5432/neondb?sslmode=require");
+        assertThat(environment.getProperty("spring.flyway.user")).isEqualTo("app");
+        assertThat(environment.getProperty("spring.flyway.password")).isEqualTo("app");
+    }
+
+    @Test
     void skipsDatabaseUrlWhenSpringDatasourceUrlSet() {
         MockEnvironment environment = new MockEnvironment();
         HostingEnvironmentPostProcessor processor = processor(Map.of(

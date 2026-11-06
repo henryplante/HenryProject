@@ -298,7 +298,7 @@ describe("isProductEditable", () => {
       isProductEditable(
         material({
           status: "draft",
-          versions: [{ id: "v1", number: 1, status: "draft", uploadedAt: "2026-01-01T00:00:00Z" }],
+          versions: [version(1, "draft")],
           cycle: undefined,
         }),
       ),

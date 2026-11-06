@@ -23,7 +23,17 @@ A material is **Draft**, **In review**, **Approved**, **Expired**, or **Obsolete
 
 ## Try it
 
-Needs Java 21, Node 20+, and Postgres 16.
+Needs Java 21 and Node 20+.
+
+**Neon (production branch):** from the repo root, `neon login` once, then `neon deploy` (writes `DATABASE_URL` / `DATABASE_URL_UNPOOLED` to `.env.local`). The API uses the pooled URL at runtime and the direct URL for Flyway.
+
+```bash
+npm install
+npm run dev:api    # Spring on :8080 against Neon
+npm run dev:web:neon
+```
+
+**Local Postgres:**
 
 ```bash
 docker compose up -d postgres

@@ -1,1 +1,2 @@
+org.springframework.boot.env.EnvironmentPostProcessor=\
 com.clearpath.review.config.hosting.HostingEnvironmentPostProcessor

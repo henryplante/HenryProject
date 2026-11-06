@@ -8,3 +8,4 @@ build/
 .DS_Store
 web/test-results/
 web/playwright-report/
+.neon

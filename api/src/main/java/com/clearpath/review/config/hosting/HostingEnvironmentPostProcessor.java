@@ -29,13 +29,18 @@ public class HostingEnvironmentPostProcessor implements EnvironmentPostProcessor
         Map<String, Object> derived = new HashMap<>();
 
         if (!StringUtils.hasText(env.apply("SPRING_DATASOURCE_URL"))) {
-            String databaseUrl = env.apply("DATABASE_URL");
-            if (StringUtils.hasText(databaseUrl)) {
-                DatabaseUrlConverter.Parsed parsed = DatabaseUrlConverter.parse(databaseUrl);
-                derived.put("spring.datasource.url", parsed.jdbcUrl());
-                derived.put("spring.datasource.username", parsed.username());
-                derived.put("spring.datasource.password", parsed.password());
+            String pooledUrl = firstNonBlank(env.apply("DATABASE_URL"), env.apply("DATABASE_URL_POOLED"));
+            if (StringUtils.hasText(pooledUrl)) {
+                putParsedPostgres(derived, "spring.datasource", DatabaseUrlConverter.parse(pooledUrl));
             }
+        }
+
+        String flywayUrl = firstNonBlank(env.apply("DATABASE_URL_UNPOOLED"), env.apply("FLYWAY_DATABASE_URL"));
+        if (StringUtils.hasText(flywayUrl)) {
+            DatabaseUrlConverter.Parsed flyway = DatabaseUrlConverter.parse(flywayUrl);
+            derived.put("spring.flyway.url", flyway.jdbcUrl());
+            derived.put("spring.flyway.user", flyway.username());
+            derived.put("spring.flyway.password", flyway.password());
         }
 
         if (isTruthy(env.apply("SEED_ON_STARTUP"))) {
@@ -94,5 +99,12 @@ public class HostingEnvironmentPostProcessor implements EnvironmentPostProcessor
             return second.trim();
         }
         return null;
+    }
+
+    private static void putParsedPostgres(
+            Map<String, Object> derived, String prefix, DatabaseUrlConverter.Parsed parsed) {
+        derived.put(prefix + ".url", parsed.jdbcUrl());
+        derived.put(prefix + ".username", parsed.username());
+        derived.put(prefix + ".password", parsed.password());
     }
 }
