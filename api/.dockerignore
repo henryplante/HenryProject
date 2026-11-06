@@ -1,0 +1,10 @@
+.git
+.gitignore
+.gradle
+build
+out
+bin
+*.md
+.env
+.env.*
+src/test

@@ -1,0 +1,10 @@
+node_modules/
+.next/
+build/
+.gradle/
+*.class
+.env
+.env.local
+.DS_Store
+web/test-results/
+web/playwright-report/

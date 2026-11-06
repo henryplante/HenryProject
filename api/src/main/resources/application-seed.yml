@@ -1,0 +1,6 @@
+seed:
+  reset: false
+
+logging:
+  level:
+    com.clearpath.review.seed: INFO

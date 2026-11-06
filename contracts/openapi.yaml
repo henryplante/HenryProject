@@ -1,0 +1,1598 @@
+openapi: 3.1.0
+info:
+  title: ClearPath Review API
+  version: 1.0.0
+  description: HTTP API for ClearPath Review (internal marketing compliance review).
+  license:
+    name: Proprietary
+    identifier: LicenseRef-Proprietary
+servers:
+  - url: /api
+    description: Next.js rewrite target (Spring Boot backend)
+tags:
+  - name: Health
+    description: Liveness and readiness
+  - name: Session
+    description: Authentication and demo user switch
+  - name: Setup
+    description: Users, groups, and product workflow configuration
+  - name: Materials
+    description: Materials, versions, review, comments, and activity
+  - name: Tasks
+    description: Computed task list pane
+  - name: Notifications
+    description: Bell notification feed
+paths:
+  /health:
+    get:
+      tags: [Health]
+      operationId: getHealth
+      summary: Liveness check
+      security: []
+      responses:
+        "200":
+          description: Service is up
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthResponse"
+        "503":
+          description: Service unavailable
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "400":
+          $ref: "#/components/responses/ValidationError"
+
+  /session:
+    get:
+      tags: [Session]
+      operationId: getSession
+      summary: Current session user
+      security: []
+      responses:
+        "200":
+          description: Session state (user null when unauthenticated)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SessionResponse"
+        "400":
+          $ref: "#/components/responses/ValidationError"
+
+  /session/login:
+    post:
+      tags: [Session]
+      operationId: login
+      summary: Sign in with email and password
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LoginRequest"
+      responses:
+        "200":
+          description: Authenticated; session cookie set
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SessionResponse"
+        "400":
+          $ref: "#/components/responses/ValidationError"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  /session/switch:
+    post:
+      tags: [Session]
+      operationId: switchUser
+      summary: Demo user switch (requires existing session)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SwitchUserRequest"
+      responses:
+        "200":
+          description: Acting as the selected user
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SessionResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /session/logout:
+    post:
+      tags: [Session]
+      operationId: logout
+      summary: End session
+      responses:
+        "204":
+          description: Logged out; session cookie cleared
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  /users:
+    get:
+      tags: [Setup]
+      operationId: listUsers
+      summary: List users
+      responses:
+        "200":
+          description: All users
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/User"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+    post:
+      tags: [Setup]
+      operationId: createUser
+      summary: Create user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UserInput"
+      responses:
+        "201":
+          description: Created user
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+        "400":
+          $ref: "#/components/responses/ValidationError"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  /users/{id}:
+    parameters:
+      - $ref: "#/components/parameters/UuidPathId"
+    patch:
+      tags: [Setup]
+      operationId: updateUser
+      summary: Update user (includes group membership)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UserInput"
+      responses:
+        "200":
+          description: Updated user
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+        "400":
+          $ref: "#/components/responses/ValidationError"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /groups:
+    get:
+      tags: [Setup]
+      operationId: listGroups
+      summary: List groups
+      responses:
+        "200":
+          description: All groups
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Group"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+    post:
+      tags: [Setup]
+      operationId: createGroup
+      summary: Create group
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/GroupInput"
+      responses:
+        "201":
+          description: Created group
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Group"
+        "400":
+          $ref: "#/components/responses/ValidationError"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  /groups/{id}:
+    parameters:
+      - $ref: "#/components/parameters/UuidPathId"
+    patch:
+      tags: [Setup]
+      operationId: updateGroup
+      summary: Update group name
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/GroupInput"
+      responses:
+        "200":
+          description: Updated group
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Group"
+        "400":
+          $ref: "#/components/responses/ValidationError"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /groups/{id}/members:
+    parameters:
+      - $ref: "#/components/parameters/UuidPathId"
+    put:
+      tags: [Setup]
+      operationId: replaceGroupMembers
+      summary: Replace group membership
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/GroupMembersInput"
+      responses:
+        "200":
+          description: Updated group with member ids
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Group"
+        "400":
+          $ref: "#/components/responses/ValidationError"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /products:
+    get:
+      tags: [Setup]
+      operationId: listProducts
+      summary: List products with workflow templates
+      responses:
+        "200":
+          description: All products
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Product"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+    post:
+      tags: [Setup]
+      operationId: createProduct
+      summary: Create product with nested steps and requirements
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ProductInput"
+      responses:
+        "201":
+          description: Created product
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Product"
+        "400":
+          $ref: "#/components/responses/ValidationError"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  /products/{id}:
+    parameters:
+      - $ref: "#/components/parameters/UuidPathId"
+    get:
+      tags: [Setup]
+      operationId: getProduct
+      summary: Get product with workflow
+      responses:
+        "200":
+          description: Product
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Product"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+    put:
+      tags: [Setup]
+      operationId: replaceProduct
+      summary: Replace product workflow (full nested steps and requirements)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ProductInput"
+      responses:
+        "200":
+          description: Updated product
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Product"
+        "400":
+          $ref: "#/components/responses/ValidationError"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/ProductLocked"
+
+  /materials:
+    get:
+      tags: [Materials]
+      operationId: listMaterials
+      summary: Search and filter materials (runs lazy expiry notification pass)
+      parameters:
+        - name: q
+          in: query
+          description: Title search
+          schema:
+            type: string
+        - name: productId
+          in: query
+          schema:
+            type: string
+            format: uuid
+        - name: status
+          in: query
+          schema:
+            $ref: "#/components/schemas/MaterialStatus"
+        - name: channel
+          in: query
+          schema:
+            $ref: "#/components/schemas/MaterialChannel"
+        - name: owned
+          in: query
+          description: When true, only materials owned by the current user
+          schema:
+            type: boolean
+        - name: favorites
+          in: query
+          description: When true, only favorited materials
+          schema:
+            type: boolean
+      responses:
+        "200":
+          description: Material summaries (status reflects current version)
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/MaterialSummary"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+    post:
+      tags: [Materials]
+      operationId: createMaterial
+      summary: Create material with first version (multipart upload)
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              $ref: "#/components/schemas/CreateMaterialMultipart"
+      responses:
+        "201":
+          description: Created material detail
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MaterialDetail"
+        "400":
+          $ref: "#/components/responses/ValidationError"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/GroupTooSmall"
+
+  /materials/{id}:
+    parameters:
+      - $ref: "#/components/parameters/MaterialId"
+    get:
+      tags: [Materials]
+      operationId: getMaterial
+      summary: Material detail for a selected version
+      description: >
+        Summary status follows the material's current version. Pass versionId to load PDF,
+        comments, stepper, and cycle for that version; selectedVersionId is always returned.
+      parameters:
+        - name: versionId
+          in: query
+          description: Version to select (defaults to current version)
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Material detail
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MaterialDetail"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+    patch:
+      tags: [Materials]
+      operationId: patchMaterial
+      summary: Update material metadata
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MaterialPatch"
+      responses:
+        "200":
+          description: Updated material detail (current version selected)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MaterialDetail"
+        "400":
+          $ref: "#/components/responses/ValidationError"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          description: Conflict (obsolete or product locked)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                obsolete:
+                  value:
+                    error:
+                      code: MATERIAL_OBSOLETE
+                      message: Material is obsolete
+                productLocked:
+                  value:
+                    error:
+                      code: PRODUCT_LOCKED
+                      message: Product cannot change after review started
+
+  /materials/{id}/versions:
+    parameters:
+      - $ref: "#/components/parameters/MaterialId"
+    post:
+      tags: [Materials]
+      operationId: uploadMaterialVersion
+      summary: Upload a new version (may abandon active cycle and restart review)
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              $ref: "#/components/schemas/UploadVersionMultipart"
+      responses:
+        "201":
+          description: New version created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MaterialDetail"
+        "400":
+          $ref: "#/components/responses/ValidationError"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/MaterialObsolete"
+
+  /versions/{versionId}/file:
+    parameters:
+      - name: versionId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    get:
+      tags: [Materials]
+      operationId: getVersionFile
+      summary: Download version PDF
+      responses:
+        "200":
+          description: PDF bytes
+          content:
+            application/pdf:
+              schema:
+                type: string
+                format: binary
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /materials/{id}/review/start:
+    parameters:
+      - $ref: "#/components/parameters/MaterialId"
+    post:
+      tags: [Materials]
+      operationId: startReview
+      summary: Start review on current version
+      responses:
+        "200":
+          description: Review started
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MaterialDetail"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          description: Cannot start review
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                groupTooSmall:
+                  value:
+                    error:
+                      code: GROUP_TOO_SMALL
+                      message: Group has too few members
+                      details:
+                        groupName: Legal
+                cycleActive:
+                  value:
+                    error:
+                      code: CYCLE_ALREADY_ACTIVE
+                      message: A review cycle is already active
+                obsolete:
+                  value:
+                    error:
+                      code: MATERIAL_OBSOLETE
+                      message: Material is obsolete
+
+  /materials/{id}/approvals:
+    parameters:
+      - $ref: "#/components/parameters/MaterialId"
+    post:
+      tags: [Materials]
+      operationId: approveMaterial
+      summary: Record approval for a group on the open step
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ApproveRequest"
+      responses:
+        "200":
+          description: Approval recorded
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MaterialDetail"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/NotGroupMember"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          description: Approval conflict
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                noCycle:
+                  value:
+                    error:
+                      code: NO_ACTIVE_CYCLE
+                      message: No active review cycle
+                alreadyApproved:
+                  value:
+                    error:
+                      code: ALREADY_APPROVED
+                      message: Already approved for this group on this step
+                obsolete:
+                  value:
+                    error:
+                      code: MATERIAL_OBSOLETE
+                      message: Material is obsolete
+
+  /materials/{id}/obsolete:
+    parameters:
+      - $ref: "#/components/parameters/MaterialId"
+    post:
+      tags: [Materials]
+      operationId: markMaterialObsolete
+      summary: Mark material obsolete and abandon active cycle
+      responses:
+        "200":
+          description: Material marked obsolete
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MaterialDetail"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/MaterialObsolete"
+
+  /materials/{id}/favorite:
+    parameters:
+      - $ref: "#/components/parameters/MaterialId"
+    put:
+      tags: [Materials]
+      operationId: favoriteMaterial
+      summary: Favorite material for current user
+      responses:
+        "204":
+          description: Favorited
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+    delete:
+      tags: [Materials]
+      operationId: unfavoriteMaterial
+      summary: Remove favorite for current user
+      responses:
+        "204":
+          description: Unfavorited
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /versions/{versionId}/comments:
+    parameters:
+      - name: versionId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    get:
+      tags: [Materials]
+      operationId: listVersionComments
+      summary: Comments for a version
+      responses:
+        "200":
+          description: Comment thread
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Comment"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+    post:
+      tags: [Materials]
+      operationId: createVersionComment
+      summary: Add comment on a version
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CommentInput"
+      responses:
+        "201":
+          description: Created comment
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Comment"
+        "400":
+          $ref: "#/components/responses/ValidationError"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/MaterialObsolete"
+
+  /materials/{id}/activity:
+    parameters:
+      - $ref: "#/components/parameters/MaterialId"
+    get:
+      tags: [Materials]
+      operationId: listMaterialActivity
+      summary: Material-wide activity log (newest first)
+      responses:
+        "200":
+          description: Activity entries
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ActivityEntry"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /tasks:
+    get:
+      tags: [Tasks]
+      operationId: listTasks
+      summary: Task list rows for a tab
+      parameters:
+        - name: tab
+          in: query
+          required: true
+          schema:
+            $ref: "#/components/schemas/TaskTab"
+      responses:
+        "200":
+          description: Task rows
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/TaskRow"
+        "400":
+          $ref: "#/components/responses/ValidationError"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  /tasks/counts:
+    get:
+      tags: [Tasks]
+      operationId: getTaskCounts
+      summary: Row counts per task tab
+      responses:
+        "200":
+          description: Tab counts
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TaskCounts"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  /notifications:
+    get:
+      tags: [Notifications]
+      operationId: listNotifications
+      summary: Bell feed for current user
+      responses:
+        "200":
+          description: Notifications with unread count
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NotificationList"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  /notifications/{id}/read:
+    parameters:
+      - $ref: "#/components/parameters/UuidPathId"
+    post:
+      tags: [Notifications]
+      operationId: markNotificationRead
+      summary: Mark one notification read
+      responses:
+        "200":
+          description: Updated notification
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Notification"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /notifications/read-all:
+    post:
+      tags: [Notifications]
+      operationId: markAllNotificationsRead
+      summary: Mark all notifications read for current user
+      responses:
+        "204":
+          description: All marked read
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+components:
+  securitySchemes:
+    clearpath_session:
+      type: apiKey
+      in: cookie
+      name: clearpath_session
+      description: HttpOnly session cookie (HMAC-signed payload)
+
+  parameters:
+    UuidPathId:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    MaterialId:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+
+  responses:
+    ValidationError:
+      description: Request validation failed
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+          example:
+            error:
+              code: VALIDATION
+              message: Validation failed
+              details:
+                field: title
+    Unauthorized:
+      description: Missing or invalid session
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+          example:
+            error:
+              code: UNAUTHORIZED
+              message: Unauthorized
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+          example:
+            error:
+              code: NOT_FOUND
+              message: Not found
+    NotGroupMember:
+      description: User is not a member of the approval group
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+          example:
+            error:
+              code: NOT_GROUP_MEMBER
+              message: Not a member of this group
+    GroupTooSmall:
+      description: Required group has fewer members than approvals required
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+    ProductLocked:
+      description: Product workflow locked after first review cycle
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+          example:
+            error:
+              code: PRODUCT_LOCKED
+              message: Product cannot change after review started
+    MaterialObsolete:
+      description: Material is obsolete
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+          example:
+            error:
+              code: MATERIAL_OBSOLETE
+              message: Material is obsolete
+
+  schemas:
+    HealthResponse:
+      type: object
+      required: [status]
+      properties:
+        status:
+          type: string
+          example: ok
+
+    ErrorCode:
+      type: string
+      enum:
+        - VALIDATION
+        - UNAUTHORIZED
+        - NOT_GROUP_MEMBER
+        - NOT_FOUND
+        - GROUP_TOO_SMALL
+        - CYCLE_ALREADY_ACTIVE
+        - NO_ACTIVE_CYCLE
+        - ALREADY_APPROVED
+        - PRODUCT_LOCKED
+        - MATERIAL_OBSOLETE
+
+    ErrorBody:
+      type: object
+      required: [code, message]
+      properties:
+        code:
+          $ref: "#/components/schemas/ErrorCode"
+        message:
+          type: string
+        details:
+          type: object
+          additionalProperties: true
+
+    ErrorResponse:
+      type: object
+      required: [error]
+      properties:
+        error:
+          $ref: "#/components/schemas/ErrorBody"
+
+    DateTimeUtc:
+      type: string
+      format: date-time
+      description: ISO-8601 timestamp in UTC
+
+    SessionUser:
+      type: object
+      required: [id, name, email, groupIds]
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        email:
+          type: string
+          format: email
+        groupIds:
+          type: array
+          items:
+            type: string
+            format: uuid
+
+    SessionResponse:
+      type: object
+      required: [user]
+      properties:
+        user:
+          oneOf:
+            - $ref: "#/components/schemas/SessionUser"
+            - type: "null"
+
+    LoginRequest:
+      type: object
+      required: [email, password]
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          minLength: 1
+
+    SwitchUserRequest:
+      type: object
+      required: [userId]
+      properties:
+        userId:
+          type: string
+          format: uuid
+
+    User:
+      type: object
+      required: [id, name, email, groupIds]
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        email:
+          type: string
+          format: email
+        groupIds:
+          type: array
+          items:
+            type: string
+            format: uuid
+
+    UserInput:
+      type: object
+      required: [name, email, groupIds]
+      properties:
+        name:
+          type: string
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          minLength: 1
+          description: Required on create; optional on update
+        groupIds:
+          type: array
+          items:
+            type: string
+            format: uuid
+
+    Group:
+      type: object
+      required: [id, name, memberIds]
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        memberIds:
+          type: array
+          items:
+            type: string
+            format: uuid
+
+    GroupInput:
+      type: object
+      required: [name]
+      properties:
+        name:
+          type: string
+
+    GroupMembersInput:
+      type: object
+      required: [userIds]
+      properties:
+        userIds:
+          type: array
+          items:
+            type: string
+            format: uuid
+
+    StepRequirement:
+      type: object
+      required: [groupId, approvalsRequired]
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Present on persisted product; omit when creating nested requirements
+        groupId:
+          type: string
+          format: uuid
+        groupName:
+          type: string
+          description: Denormalized for display when returned on products
+        approvalsRequired:
+          type: integer
+          minimum: 1
+
+    WorkflowStep:
+      type: object
+      required: [position, name, requirements]
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Present on persisted product; omit when creating nested steps
+        position:
+          type: integer
+          minimum: 1
+        name:
+          type: string
+        requirements:
+          type: array
+          items:
+            $ref: "#/components/schemas/StepRequirement"
+
+    Product:
+      type: object
+      required: [id, name, approvalLifetimeDays, steps]
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        approvalLifetimeDays:
+          type: integer
+          minimum: 1
+        steps:
+          type: array
+          items:
+            $ref: "#/components/schemas/WorkflowStep"
+
+    ProductInput:
+      type: object
+      required: [name, approvalLifetimeDays, steps]
+      properties:
+        name:
+          type: string
+        approvalLifetimeDays:
+          type: integer
+          minimum: 1
+        steps:
+          type: array
+          items:
+            $ref: "#/components/schemas/WorkflowStep"
+
+    MaterialChannel:
+      type: string
+      enum: [email, web, affiliate, social]
+
+    MaterialAudience:
+      type: string
+      enum: [consumer, partner]
+
+    MaterialStatus:
+      type: string
+      enum: [draft, in_review, approved, expired, obsolete]
+
+    VersionStatus:
+      type: string
+      enum: [draft, in_review, approved]
+
+    MaterialSummary:
+      type: object
+      required:
+        - id
+        - title
+        - productId
+        - productName
+        - channel
+        - status
+        - ownerId
+        - currentVersionNumber
+        - favorited
+      properties:
+        id:
+          type: string
+          format: uuid
+        title:
+          type: string
+        productId:
+          type: string
+          format: uuid
+        productName:
+          type: string
+        channel:
+          $ref: "#/components/schemas/MaterialChannel"
+        status:
+          $ref: "#/components/schemas/MaterialStatus"
+        ownerId:
+          type: string
+          format: uuid
+        currentVersionNumber:
+          type: integer
+          minimum: 1
+        favorited:
+          type: boolean
+        approvedUntil:
+          $ref: "#/components/schemas/DateTimeUtc"
+
+    VersionSummary:
+      type: object
+      required:
+        - id
+        - number
+        - uploadedAt
+        - uploadedByName
+        - versionStatus
+      properties:
+        id:
+          type: string
+          format: uuid
+        number:
+          type: integer
+          minimum: 1
+        uploadedAt:
+          $ref: "#/components/schemas/DateTimeUtc"
+        uploadedByName:
+          type: string
+        versionStatus:
+          $ref: "#/components/schemas/VersionStatus"
+        approvedUntil:
+          $ref: "#/components/schemas/DateTimeUtc"
+          description: Present when this version is the material's approved-for-use version
+
+    CycleStepState:
+      type: string
+      enum: [pending, active, completed]
+
+    CycleStatus:
+      type: string
+      enum: [active, completed]
+
+    CycleRequirementView:
+      type: object
+      required: [groupId, groupName, have, need]
+      properties:
+        groupId:
+          type: string
+          format: uuid
+        groupName:
+          type: string
+        have:
+          type: integer
+          minimum: 0
+        need:
+          type: integer
+          minimum: 1
+
+    CycleStepView:
+      type: object
+      required: [position, name, state, requirements]
+      properties:
+        position:
+          type: integer
+          minimum: 1
+        name:
+          type: string
+        state:
+          $ref: "#/components/schemas/CycleStepState"
+        requirements:
+          type: array
+          items:
+            $ref: "#/components/schemas/CycleRequirementView"
+
+    CycleView:
+      type: object
+      required: [status, currentPosition, steps]
+      properties:
+        status:
+          $ref: "#/components/schemas/CycleStatus"
+        currentPosition:
+          type: integer
+          minimum: 1
+        steps:
+          type: array
+          items:
+            $ref: "#/components/schemas/CycleStepView"
+
+    ApprovableGroup:
+      type: object
+      required: [groupId, groupName]
+      properties:
+        groupId:
+          type: string
+          format: uuid
+        groupName:
+          type: string
+
+    ViewerCapabilities:
+      type: object
+      required: [canStartReview, canApprove, approvableGroups]
+      properties:
+        canStartReview:
+          type: boolean
+        startBlockedReason:
+          type: string
+        canApprove:
+          type: boolean
+        approvableGroups:
+          type: array
+          items:
+            $ref: "#/components/schemas/ApprovableGroup"
+
+    MaterialDetail:
+      allOf:
+        - $ref: "#/components/schemas/MaterialSummary"
+        - type: object
+          required:
+            - audience
+            - intendedUse
+            - versions
+            - selectedVersionId
+            - capabilities
+          properties:
+            audience:
+              $ref: "#/components/schemas/MaterialAudience"
+            intendedUse:
+              type: string
+            versions:
+              type: array
+              items:
+                $ref: "#/components/schemas/VersionSummary"
+            selectedVersionId:
+              type: string
+              format: uuid
+            cycle:
+              $ref: "#/components/schemas/CycleView"
+            capabilities:
+              $ref: "#/components/schemas/ViewerCapabilities"
+
+    MaterialPatch:
+      type: object
+      properties:
+        title:
+          type: string
+        productId:
+          type: string
+          format: uuid
+        channel:
+          $ref: "#/components/schemas/MaterialChannel"
+        audience:
+          $ref: "#/components/schemas/MaterialAudience"
+        intendedUse:
+          type: string
+        ownerId:
+          type: string
+          format: uuid
+
+    CreateMaterialMultipart:
+      type: object
+      required:
+        - title
+        - productId
+        - channel
+        - audience
+        - intendedUse
+        - file
+      properties:
+        title:
+          type: string
+        productId:
+          type: string
+          format: uuid
+        channel:
+          $ref: "#/components/schemas/MaterialChannel"
+        audience:
+          $ref: "#/components/schemas/MaterialAudience"
+        intendedUse:
+          type: string
+        file:
+          type: string
+          format: binary
+          description: PDF upload
+        startReview:
+          type: boolean
+          default: false
+
+    UploadVersionMultipart:
+      type: object
+      required: [file]
+      properties:
+        file:
+          type: string
+          format: binary
+          description: PDF upload
+        note:
+          type: string
+        startReview:
+          type: boolean
+          description: Defaults true when replacing file during an active cycle
+
+    ApproveRequest:
+      type: object
+      required: [groupId]
+      properties:
+        groupId:
+          type: string
+          format: uuid
+
+    Comment:
+      type: object
+      required: [id, versionId, authorId, authorName, body, createdAt]
+      properties:
+        id:
+          type: string
+          format: uuid
+        versionId:
+          type: string
+          format: uuid
+        authorId:
+          type: string
+          format: uuid
+        authorName:
+          type: string
+        body:
+          type: string
+        createdAt:
+          $ref: "#/components/schemas/DateTimeUtc"
+
+    CommentInput:
+      type: object
+      required: [body]
+      properties:
+        body:
+          type: string
+          minLength: 1
+
+    ActivityType:
+      type: string
+      description: Material activity log entry type
+      enum:
+        - uploaded
+        - review_started
+        - review_restarted
+        - step_opened
+        - comment_added
+        - approved
+        - step_completed
+        - fully_approved
+        - expired
+        - obsolete
+        - product_changed
+        - owner_changed
+
+    ActivityEntry:
+      type: object
+      required: [id, materialId, actorId, actorName, type, createdAt]
+      properties:
+        id:
+          type: string
+          format: uuid
+        materialId:
+          type: string
+          format: uuid
+        actorId:
+          type: string
+          format: uuid
+        actorName:
+          type: string
+        type:
+          $ref: "#/components/schemas/ActivityType"
+        detail:
+          type: object
+          additionalProperties: true
+        createdAt:
+          $ref: "#/components/schemas/DateTimeUtc"
+
+    TaskTab:
+      type: string
+      enum: [mine, workflows, upcoming]
+
+    TaskRow:
+      type: object
+      required:
+        - materialId
+        - title
+        - productName
+        - versionNumber
+        - stepName
+        - daysWaiting
+        - overdue
+        - tab
+      properties:
+        materialId:
+          type: string
+          format: uuid
+        title:
+          type: string
+        productName:
+          type: string
+        versionNumber:
+          type: integer
+          minimum: 1
+        stepName:
+          type: string
+        daysWaiting:
+          type: integer
+          minimum: 0
+        overdue:
+          type: boolean
+        tab:
+          $ref: "#/components/schemas/TaskTab"
+
+    TaskCounts:
+      type: object
+      required: [mine, workflows, upcoming]
+      properties:
+        mine:
+          type: integer
+          minimum: 0
+        workflows:
+          type: integer
+          minimum: 0
+        upcoming:
+          type: integer
+          minimum: 0
+
+    NotificationKind:
+      type: string
+      enum:
+        - step_opened
+        - comment_added
+        - approved
+        - step_completed
+        - fully_approved
+        - material_expired
+        - obsolete
+
+    Notification:
+      type: object
+      required: [id, kind, materialId, materialTitle, read, createdAt]
+      properties:
+        id:
+          type: string
+          format: uuid
+        kind:
+          $ref: "#/components/schemas/NotificationKind"
+        materialId:
+          type: string
+          format: uuid
+        materialTitle:
+          type: string
+        read:
+          type: boolean
+        createdAt:
+          $ref: "#/components/schemas/DateTimeUtc"
+        detail:
+          type: object
+          additionalProperties: true
+
+    NotificationList:
+      type: object
+      required: [items, unreadCount]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/Notification"
+        unreadCount:
+          type: integer
+          minimum: 0
+
+security:
+  - clearpath_session: []
