@@ -13,7 +13,7 @@ public final class SessionDtos {
 
     public record SessionUserDto(UUID id, String name, String email, List<UUID> groupIds) {}
 
-    public record SessionResponseDto(SessionUserDto user) {}
+    public record SessionResponseDto(@JsonInclude(JsonInclude.Include.ALWAYS) SessionUserDto user) {}
 
     public record LoginRequestDto(
             @NotBlank @Email String email,

@@ -9,6 +9,7 @@ import com.clearpath.review.domain.Notification;
 import com.clearpath.review.domain.AppUserRepository;
 import com.clearpath.review.domain.NotificationRepository;
 import java.time.Instant;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
@@ -34,8 +35,14 @@ public class ReviewEventWriter {
         writeActivity(material, actor, "review_started", at, Map.of("version", versionNumber));
     }
 
-    public void stepOpened(Material material, AppUser actor, int stepPosition, Set<UUID> recipientUserIds, Instant at) {
-        Map<String, Object> detail = Map.of("step", stepPosition);
+    public void stepOpened(
+            Material material,
+            AppUser actor,
+            int stepPosition,
+            String stepName,
+            Set<UUID> recipientUserIds,
+            Instant at) {
+        Map<String, Object> detail = Map.of("step", stepPosition, "stepName", stepName);
         for (UUID userId : recipientUserIds) {
             writeNotification(userId, material, actor, "step_opened", detail, at);
         }
@@ -50,31 +57,41 @@ public class ReviewEventWriter {
         }
     }
 
-    public void stepCompleted(Material material, AppUser actor, AppUser owner, int stepPosition, Instant at) {
-        Map<String, Object> detail = Map.of("step", stepPosition);
+    public void stepCompleted(
+            Material material, AppUser actor, AppUser owner, int stepPosition, String stepName, Instant at) {
+        Map<String, Object> detail = Map.of("step", stepPosition, "stepName", stepName);
         writeActivity(material, actor, "step_completed", at, detail);
         writeNotification(owner.getId(), material, actor, "step_completed", detail, at);
     }
 
-    public void fullyApproved(Material material, AppUser actor, AppUser owner, Instant at) {
-        writeActivity(material, actor, "fully_approved", at, Map.of());
-        writeNotification(owner.getId(), material, actor, "fully_approved", Map.of(), at);
+    public void fullyApproved(
+            Material material, AppUser actor, AppUser owner, int versionNumber, Instant approvedUntil, Instant at) {
+        Map<String, Object> detail = Map.of("version", versionNumber, "approvedUntil", approvedUntil.toString());
+        writeActivity(material, actor, "fully_approved", at, detail);
+        writeNotification(owner.getId(), material, actor, "fully_approved", detail, at);
     }
 
     public void reviewRestarted(Material material, AppUser actor, int versionNumber, Instant at) {
         writeActivity(material, actor, "review_restarted", at, Map.of("version", versionNumber));
     }
 
-    public void uploaded(Material material, AppUser actor, int versionNumber, Instant at) {
-        writeActivity(material, actor, "uploaded", at, Map.of("version", versionNumber));
+    public void uploaded(Material material, AppUser actor, int versionNumber, String note, Instant at) {
+        Map<String, Object> detail = new LinkedHashMap<>();
+        detail.put("version", versionNumber);
+        if (note != null && !note.isBlank()) {
+            detail.put("note", note.trim());
+        }
+        writeActivity(material, actor, "uploaded", at, detail);
     }
 
     public void productChanged(Material material, AppUser actor, String fromName, String toName, Instant at) {
-        writeActivity(material, actor, "product_changed", at, Map.of("from", fromName, "to", toName));
+        writeActivity(material, actor, "product_changed", at, Map.of(
+                        "from", fromName, "to", toName, "fromProductName", fromName, "toProductName", toName));
     }
 
     public void ownerChanged(Material material, AppUser actor, String fromName, String toName, Instant at) {
-        writeActivity(material, actor, "owner_changed", at, Map.of("from", fromName, "to", toName));
+        writeActivity(
+                material, actor, "owner_changed", at, Map.of("from", fromName, "to", toName, "ownerName", toName));
     }
 
     public void obsolete(Material material, AppUser actor, AppUser owner, Instant at) {
@@ -108,7 +125,11 @@ public class ReviewEventWriter {
         notification.setMaterial(material);
         notification.setActor(actor);
         notification.setKind(kind);
-        notification.setDetail(detail);
+        Map<String, Object> enriched = new LinkedHashMap<>(detail);
+        if (actor != null && actor.getName() != null) {
+            enriched.putIfAbsent("actorName", actor.getName());
+        }
+        notification.setDetail(enriched);
         notification.setCreatedAt(at);
         notificationRepository.save(notification);
     }

@@ -74,10 +74,10 @@ public class UserService {
     }
 
     private void ensureEmailAvailable(String email, UUID exceptUserId) {
-        appUserRepository.findByEmail(email).ifPresent(existing -> {
-            if (exceptUserId == null || !existing.getId().equals(exceptUserId)) {
-                throw new ApiException(ErrorCode.VALIDATION, HttpStatus.BAD_REQUEST, "Email already in use");
-            }
-        });
+        boolean taken = appUserRepository.findAllByEmailIgnoreCase(email).stream()
+                .anyMatch(existing -> exceptUserId == null || !existing.getId().equals(exceptUserId));
+        if (taken) {
+            throw new ApiException(ErrorCode.VALIDATION, HttpStatus.BAD_REQUEST, "Email already in use");
+        }
     }
 }

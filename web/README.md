@@ -17,7 +17,7 @@ npm run dev                  # http://localhost:3000, expects the API on API_URL
 | `npm run lint` | ESLint |
 | `npm run typecheck` | `tsc --noEmit` |
 | `npm run generate:api` | `openapi-typescript ../contracts/openapi.yaml -o lib/api/schema.d.ts` |
-| `npm run e2e` | Playwright (starts `npm run dev` on `PORT`, default 3100; set `E2E_BASE_URL` to target a running server). First run: `npx playwright install chromium` |
+| `npm run e2e` | Real-API Playwright suite (`e2e/*.spec.ts`; starts `npm run dev` on `PORT`, default 3100, unless `E2E_BASE_URL` targets a running stack). `scripts/e2e-real.sh` runs the whole flow (see `e2e/README.md`). First run: `npx playwright install chromium` |
 
 ## Environment
 

@@ -69,7 +69,7 @@ public class CommentWriteService {
             notification.setMaterial(material);
             notification.setActor(authorEntity);
             notification.setKind("comment_added");
-            notification.setDetail(Map.of("version", version.getNumber()));
+            notification.setDetail(Map.of("version", version.getNumber(), "actorName", authorEntity.getName()));
             notification.setCreatedAt(now);
             notificationRepository.save(notification);
         }

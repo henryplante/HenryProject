@@ -297,7 +297,7 @@ public class ReviewEngine {
         cycleStepRepository.save(openStep);
 
         AppUser owner = material.getOwner();
-        reviewEventWriter.stepCompleted(material, appUserRepository.getReferenceById(actor.getId()), owner, position, now);
+        reviewEventWriter.stepCompleted(material, appUserRepository.getReferenceById(actor.getId()), owner, position, openStep.getName(), now.plusMillis(1));
 
         Optional<CycleStep> nextStep = cycleStepRepository.findByCycleIdOrderByPositionAsc(cycle.getId()).stream()
                 .filter(step -> step.getPosition() > position)
@@ -324,7 +324,12 @@ public class ReviewEngine {
             materialRepository.save(material);
 
             reviewEventWriter.fullyApproved(
-                    material, appUserRepository.getReferenceById(actor.getId()), owner, now);
+                    material,
+                    appUserRepository.getReferenceById(actor.getId()),
+                    owner,
+                    approvedVersion.getNumber(),
+                    material.getApprovedUntil(),
+                    now.plusMillis(2));
         }
     }
 
@@ -336,7 +341,11 @@ public class ReviewEngine {
                 recipientIds.add(membership.getId().getUserId());
             }
         }
-        reviewEventWriter.stepOpened(material, actor, stepPosition, recipientIds, now);
+        String stepName = cycleStepRepository
+                .findByCycleIdAndPosition(cycle.getId(), stepPosition)
+                .map(CycleStep::getName)
+                .orElse("Step " + stepPosition);
+        reviewEventWriter.stepOpened(material, actor, stepPosition, stepName, recipientIds, now.plusMillis(2));
     }
 
     private void validateWorkflowGroupSizes(Material material) {

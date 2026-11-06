@@ -100,7 +100,8 @@ npm run lint
 npm test                                              # vitest unit tests
 npm run build
 npm run e2e:mocks                                     # Playwright against the mock backend (starts its own dev server)
-npm run e2e                                           # Playwright against a running API (see playwright.config.ts)
+npm run e2e                                           # Playwright against a running real stack (E2E_BASE_URL)
+./scripts/e2e-real.sh                                 # fresh DB + API + web + Playwright + teardown (see web/e2e/README.md)
 ```
 
 `MOCKS_PORT` picks the port used by the mocks Playwright config. `npm run generate:api` regenerates the API types from `contracts/openapi.yaml`.

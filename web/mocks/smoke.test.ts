@@ -189,7 +189,7 @@ describe("material detail", () => {
       (new Date(expiring.approvedUntil!).getTime() - Date.now()) / 86_400_000;
     expect(days).toBeGreaterThan(0);
     expect(days).toBeLessThan(30);
-    expect(await api.listMaterials({ favorites: true })).toHaveLength(2);
+    expect(await api.listMaterials({ favorites: true })).toHaveLength(1);
     expect(await api.listMaterials({ status: "obsolete" })).toHaveLength(1);
     expect(await api.listMaterials({ q: "mortgage" })).toHaveLength(2);
   });

@@ -112,7 +112,7 @@ public class MaterialWriteService {
         material.setCurrentVersion(version);
         materialRepository.saveAndFlush(material);
 
-        reviewEventWriter.uploaded(material, owner, 1, now);
+        reviewEventWriter.uploaded(material, owner, 1, null, now);
 
         if (Boolean.TRUE.equals(startReview)) {
             reviewEngine.startCycle(material, version, owner);
@@ -167,7 +167,7 @@ public class MaterialWriteService {
         material.setUpdatedAt(now);
         materialRepository.saveAndFlush(material);
 
-        reviewEventWriter.uploaded(material, uploader, nextNumber, now);
+        reviewEventWriter.uploaded(material, uploader, nextNumber, note, now);
 
         if (hadActiveCycle) {
             reviewEngine.abandonActiveCycle(materialId);
