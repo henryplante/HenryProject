@@ -80,7 +80,7 @@ That is the whole configuration surface. Counts, group membership, step order, a
 
 Starting a review snapshots the product’s steps onto a new cycle for the current version, then opens step 1.
 
-Every member of a required group receives a task for that step. The first N approvals from that group satisfy the row. The stepper shows the count, such as Legal 1/2. Once the count is met, the remaining people in that group no longer have a required task. They can still open the material.
+Every member of a required group receives a task for that step. The first N approvals from that group satisfy the row. The stepper shows the count, such as Legal 1/2. Once the count is met, the remaining people in that group no longer have a required task, but they can approve additional. They can still open the material as everyone can see all material.
 
 When every row on the step is satisfied, that step closes and the next step assigns its tasks. After the last step, the cycle completes, the version becomes the approved-for-use version, and `approvedUntil` is set from the product lifetime.
 
@@ -105,8 +105,11 @@ In-app only, shown from a bell:
 
 - A reviewer’s step has opened
 - A comment was added on a material they own
+- Someone approved a material they own
 - A step completed on a material they own
 - A material they own was fully approved
+- A material they own was marked as expired or obsolete
+
 
 ## Screens
 
