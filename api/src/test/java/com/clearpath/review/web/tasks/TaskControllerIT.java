@@ -321,7 +321,7 @@ class TaskControllerIT extends AbstractPostgresIT {
 
         @Bean
         @Primary
-        CurrentUserLoader dbCurrentUserLoader(JdbcTemplate jdbcTemplate) {
+        CurrentUserLoader testTasksCurrentUserLoader(JdbcTemplate jdbcTemplate) {
             return new DbCurrentUserLoader(jdbcTemplate);
         }
     }

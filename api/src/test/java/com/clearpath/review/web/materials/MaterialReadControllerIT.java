@@ -229,7 +229,7 @@ class MaterialReadControllerIT extends AbstractPostgresIT {
 
         @Bean
         @Primary
-        CurrentUserLoader dbCurrentUserLoader(AppUserRepository users, MembershipRepository memberships) {
+        CurrentUserLoader testMaterialsCurrentUserLoader(AppUserRepository users, MembershipRepository memberships) {
             return userId -> {
                 AppUser user = users.findById(userId).orElseThrow();
                 List<UUID> groupIds = memberships.findByIdUserId(userId).stream()
