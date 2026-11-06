@@ -1,21 +1,8 @@
 import { expect, test, type Page } from "@playwright/test";
+import { loginAs } from "./helpers";
 
 const SHOTS = "/tmp/wt/shots/fe-08";
 const WALKTHROUGH = "Affiliate personal loan offer — spring email";
-
-async function loginAs(page: Page, email: string) {
-  await page.goto("/login");
-  await expect(page.getByText("Sign in").first()).toBeVisible();
-  const status = await page.evaluate(async (address) => {
-    const response = await fetch("/api/session/login", {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({ email: address, password: "demo-demo" }),
-    });
-    return response.status;
-  }, email);
-  expect(status).toBe(200);
-}
 
 async function openLibrary(page: Page, query = "") {
   await page.goto(`/library${query}`);
@@ -218,9 +205,7 @@ test("filter state in the URL is restored and back button works", async ({ page 
 
   await pickOption(page, "Status", "All statuses");
   await expect(page).not.toHaveURL(/status=/);
-  await expect(rows(page).first()).toBeVisible();
-  const withoutStatus = await rows(page).count();
-  expect(withoutStatus).toBeGreaterThan(1);
+  await expect.poll(() => rows(page).count()).toBeGreaterThan(1);
 
   await page.goBack();
   await expect(page).toHaveURL(/status=draft/);

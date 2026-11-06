@@ -1,20 +1,9 @@
 import { expect, test, type Page } from "@playwright/test";
+import { loginAs } from "./helpers";
 
 const SHOTS = "/tmp/wt/shots/fe-09";
 
-async function signIn(page: Page) {
-  await page.goto("/");
-  await expect(page.getByRole("navigation", { name: "Primary" })).toBeVisible();
-  const status = await page.evaluate(async () => {
-    const response = await fetch("/api/session/login", {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({ email: "maya.chen@clearpath.example", password: "demo-demo" }),
-    });
-    return response.status;
-  });
-  expect(status).toBe(200);
-}
+const signIn = (page: Page) => loginAs(page, "maya.chen@clearpath.example");
 
 async function pickGroup(page: Page, label: string, group: string) {
   await page.getByRole("combobox", { name: label }).click();

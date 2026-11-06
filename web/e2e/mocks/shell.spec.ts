@@ -1,6 +1,12 @@
 import { expect, test, type Page } from "@playwright/test";
+import { SEED_IDS } from "../../mocks/ids";
 
-const routes = ["/", "/library", "/setup", "/materials/demo"];
+const routes = [
+  "/",
+  "/library",
+  "/setup",
+  `/materials/${SEED_IDS.materials.walkthrough}`,
+];
 
 async function signIn(page: Page) {
   await page.goto("/login");

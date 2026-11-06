@@ -1,19 +1,8 @@
-import { expect, test, type Page } from "@playwright/test";
+import { expect, test } from "@playwright/test";
+import { loginAs } from "./helpers";
 import { SEED_IDS } from "../../mocks/ids";
 
 const MATERIAL = SEED_IDS.materials.walkthrough;
-
-async function loginAs(page: Page, email: string) {
-  await page.goto("/");
-  await expect(page.getByRole("navigation", { name: "Primary" })).toBeVisible();
-  await page.evaluate(async (address) => {
-    await fetch("/api/session/login", {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({ email: address, password: "demo-demo" }),
-    });
-  }, email);
-}
 
 test.describe("material view", () => {
   test("walkthrough material: banner, version switching, PDF, rail", async ({ page }) => {
