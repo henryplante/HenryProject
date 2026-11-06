@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useTaskCounts } from "@/lib/api";
 import { cn } from "@/lib/utils";
 
 const links = [
@@ -17,6 +18,7 @@ function isActive(pathname: string, href: string) {
 
 export function NavLinks() {
   const pathname = usePathname();
+  const { data: counts } = useTaskCounts();
   return (
     <nav aria-label="Primary" className="flex items-center gap-1">
       {links.map(({ href, label }) => {
@@ -34,6 +36,15 @@ export function NavLinks() {
             )}
           >
             {label}
+            {href === "/" && counts && counts.mine > 0 ? (
+              <span
+                data-testid="home-task-count"
+                className="ml-1.5 rounded-full bg-primary px-1.5 py-0.5 text-[10px] leading-none font-medium text-primary-foreground tabular-nums"
+              >
+                {counts.mine}
+                <span className="sr-only"> tasks waiting</span>
+              </span>
+            ) : null}
           </Link>
         );
       })}

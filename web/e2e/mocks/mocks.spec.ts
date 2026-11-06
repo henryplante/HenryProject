@@ -1,10 +1,8 @@
 import { expect, test } from "@playwright/test";
 
 test("browser MSW worker serves the API", async ({ page }) => {
-  await page.goto("/");
-  await expect(
-    page.getByRole("navigation", { name: "Primary" }),
-  ).toBeVisible();
+  await page.goto("/login");
+  await expect(page.getByRole("button", { name: "Sign in" })).toBeVisible();
 
   const result = await page.evaluate(async () => {
     const json = async (path: string, init?: RequestInit) => {
@@ -35,10 +33,8 @@ test("browser MSW worker serves the API", async ({ page }) => {
 });
 
 test("browser worker serves a PDF for a seeded version", async ({ page }) => {
-  await page.goto("/");
-  await expect(
-    page.getByRole("navigation", { name: "Primary" }),
-  ).toBeVisible();
+  await page.goto("/login");
+  await expect(page.getByRole("button", { name: "Sign in" })).toBeVisible();
   const header = await page.evaluate(async () => {
     await fetch("/api/session/login", {
       method: "POST",
