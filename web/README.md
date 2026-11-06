@@ -40,7 +40,7 @@ Request bodies that pass through a rewrite are buffered by Next up to `experimen
 - `components/shell/` — `AppShell`, `NavLinks`, `HeaderActions` (right-side header slot), `LoginForm`
 - `components/tasks/TaskPane.tsx`, `components/material/MaterialView.tsx`, `components/library/LibraryView.tsx`, `components/setup/SetupView.tsx` — stubs that feature tickets replace wholesale; pages only import these, so page files do not change
 - `components/ui/` — shadcn primitives; add more with `npx shadcn@latest add <name>`
-- `mocks/` — MSW (`handlers.ts` is empty until FE-02)
+- `mocks/` — MSW (`handlers.ts` + stateful in-memory store; see `lib/README.md`)
 - `lib/pdf-worker.ts` — configures the `react-pdf` worker
 
 Home is `/?m=<materialId>&v=<versionId>`; the page passes both to `TaskPane` / `MaterialView`.
