@@ -1,0 +1,22 @@
+server:
+  port: ${SERVER_PORT:8080}
+
+spring:
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/clearpath}
+    username: ${SPRING_DATASOURCE_USERNAME:clearpath}
+    password: ${SPRING_DATASOURCE_PASSWORD:clearpath}
+  jpa:
+    hibernate:
+      ddl-auto: none
+    open-in-view: false
+  flyway:
+    enabled: true
+    baseline-on-migrate: false
+    fail-on-missing-locations: false
+    locations: classpath:db/migration
+
+clearpath:
+  session:
+    secret: ${SESSION_SECRET:dev-change-me-in-production}
+    cookie-name: clearpath_session

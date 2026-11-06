@@ -1,0 +1,3 @@
+clearpath:
+  session:
+    secret: test-session-secret
