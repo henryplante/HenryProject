@@ -1,0 +1,26 @@
+package com.clearpath.review.web.materials.dto;
+
+import com.clearpath.review.domain.MaterialAudience;
+import com.clearpath.review.domain.MaterialChannel;
+import com.clearpath.review.service.materials.MaterialStatus;
+import java.time.Instant;
+import java.util.List;
+import java.util.UUID;
+
+public record MaterialDetailDto(
+        UUID id,
+        String title,
+        UUID productId,
+        String productName,
+        MaterialChannel channel,
+        MaterialStatus status,
+        UUID ownerId,
+        int currentVersionNumber,
+        boolean favorited,
+        Instant approvedUntil,
+        MaterialAudience audience,
+        String intendedUse,
+        List<VersionSummaryDto> versions,
+        UUID selectedVersionId,
+        CycleViewDto cycle,
+        ViewerCapabilitiesDto capabilities) {}

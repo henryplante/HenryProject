@@ -14,4 +14,7 @@ public interface ReviewCycleRepository extends JpaRepository<ReviewCycle, UUID> 
     List<ReviewCycle> findByVersionId(UUID versionId);
 
     Optional<ReviewCycle> findByVersionIdAndStatus(UUID versionId, ReviewCycleStatus status);
+
+    Optional<ReviewCycle> findFirstByVersionIdAndStatusOrderByEndedAtDescStartedAtDesc(
+            UUID versionId, ReviewCycleStatus status);
 }
